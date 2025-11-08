@@ -23,6 +23,11 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// ✅ Test route (add BEFORE other routes)
+app.get("/test", (req, res) => {
+  res.json({ message: "Backend connected successfully!" });
+});
+
 // ✅ Routes
 app.use("/api/admin", adminRoutes);
 app.use("/api/applications", applicationRoutes);
