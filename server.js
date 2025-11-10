@@ -1,3 +1,4 @@
+// server.js
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -16,18 +17,18 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ✅ Allowed origins
+// ✅ Allowed origins (local + live + .env)
 const allowedOrigins = [
-  "http://localhost:3000",               // local dev
-  process.env.FRONTEND_URL,              // dynamic frontend URL from .env
-  "https://joblinknigeria.vercel.app",   // live frontend fallback
+  "http://localhost:3000",
+  process.env.FRONTEND_URL, // dynamic frontend URL
+  "https://joblinknigeria.vercel.app",
 ];
 
-// ✅ CORS middleware
+// ✅ CORS middleware (handles both browser + Postman)
 app.use(
   cors({
     origin: (origin, callback) => {
-      // allow requests like Postman or mobile apps with no origin
+      // Allow requests with no origin (e.g., mobile apps, Postman)
       if (!origin) return callback(null, true);
 
       if (allowedOrigins.includes(origin)) {
@@ -50,25 +51,27 @@ app.options("*", cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ Serve static uploads
+// ✅ Serve uploaded files
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// ✅ Test route
+// ✅ Test route (for Render health check)
 app.get("/test", (req, res) => {
   res.json({ message: "Backend connected successfully!" });
 });
 
-// ✅ API routes
+// ✅ API Routes
 app.use("/api/admin", adminRoutes);
 app.use("/api/applications", applicationRoutes);
 app.use("/api/auth", authRoutes);
 
-// ✅ MongoDB connection
+// ✅ MongoDB Connection
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB connected"))
-  .catch((err) => console.error("❌ MongoDB connection error:", err));
+  .catch((err) => console.error("❌ MongoDB connection error:", err.message));
 
-// ✅ Start server
+// ✅ Start Server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, () =>
+  console.log(`🚀 Server running on port ${PORT}`)
+);
