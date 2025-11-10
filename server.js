@@ -61,6 +61,7 @@ app.get("/test", (req, res) => {
 // ✅ API routes
 app.use("/api/admin", adminRoutes);
 app.use("/api/applications", applicationRoutes);
+app.use("/api/auth", authRoutes);
 
 // ✅ MongoDB connection
 mongoose
