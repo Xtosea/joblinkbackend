@@ -1,10 +1,20 @@
-// controllers/applicationController.js
 import Application from "../models/Application.js";
+import { uploadFileToFirebase } from "../utils/firebaseUpload.js";
 
-// ✅ Step 1: Create new application (without files)
+// Create new application (with optional files)
 export const createApplication = async (req, res) => {
   try {
     const { fullname, email, mobile, jobType, jobPosition } = req.body;
+    let proofFile = null;
+    let resumeFile = null;
+
+    // Upload files if present
+    if (req.files?.proofFile) {
+      proofFile = await uploadFileToFirebase(req.files.proofFile[0], "proofs");
+    }
+    if (req.files?.resumeFile) {
+      resumeFile = await uploadFileToFirebase(req.files.resumeFile[0], "resumes");
+    }
 
     const application = await Application.create({
       fullname,
@@ -12,6 +22,9 @@ export const createApplication = async (req, res) => {
       mobile,
       jobType,
       jobPosition,
+      proofFile,
+      resumeFile,
+      status: "Pending",
     });
 
     res.status(201).json(application);
@@ -21,42 +34,28 @@ export const createApplication = async (req, res) => {
   }
 };
 
-// ✅ Step 2: Upload files (proof + resume)
+// Upload files (proof + resume)
 export const uploadFiles = async (req, res) => {
   try {
     const { id } = req.params;
-    const proofFile = req.files?.proofFile?.[0]?.filename;
-    const resumeFile = req.files?.resumeFile?.[0]?.filename;
+    const updates = {};
 
-    if (!proofFile && !resumeFile) {
-      return res.status(400).json({ message: "No files uploaded" });
+    if (req.files?.proofFile?.[0]) {
+      updates.proofFile = await uploadFileToFirebase(req.files.proofFile[0], "proofs");
+    }
+    if (req.files?.resumeFile?.[0]) {
+      updates.resumeFile = await uploadFileToFirebase(req.files.resumeFile[0], "resumes");
     }
 
-    // ✅ Detect backend base URL dynamically
-    const baseUrl =
-      process.env.NODE_ENV === "production"
-        ? "https://joblinknigeria.onrender.com" // Render live URL
-        : "http://localhost:5000"; // Local dev URL
-
-    // ✅ Construct full URLs for uploaded files
-    const proofFileUrl = proofFile ? `${baseUrl}/uploads/${proofFile}` : null;
-    const resumeFileUrl = resumeFile ? `${baseUrl}/uploads/${resumeFile}` : null;
-
-    // ✅ Update MongoDB record with uploaded file URLs
-    const updated = await Application.findByIdAndUpdate(
-      id,
-      { proofFile: proofFileUrl, resumeFile: resumeFileUrl },
-      { new: true }
-    );
-
-    res.json(updated);
-  } catch (error) {
-    console.error("Upload error:", error);
-    res.status(500).json({ message: error.message });
+    const updated = await Application.findByIdAndUpdate(id, updates, { new: true });
+    res.status(200).json({ success: true, updated });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "File upload failed" });
   }
 };
 
-// ✅ Step 3: Get all applications (Admin protected)
+// Get all applications
 export const getApplications = async (req, res) => {
   try {
     const applications = await Application.find().sort({ createdAt: -1 });
@@ -67,7 +66,7 @@ export const getApplications = async (req, res) => {
   }
 };
 
-// ✅ Step 4: Reply to application (Admin protected)
+// Reply to application
 export const replyToApplication = async (req, res) => {
   try {
     const { id } = req.params;
