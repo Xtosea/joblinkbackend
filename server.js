@@ -1,7 +1,8 @@
 // server.js
+import fs from "fs";
+import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import mongoose from "mongoose";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -10,25 +11,34 @@ import adminRoutes from "./routes/adminRoutes.js";
 import applicationRoutes from "./routes/applicationRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 
-dotenv.config();
+// ✅ Load .env from Render Secret File
+dotenv.config({ path: "/etc/secrets/joblink.env" });
+
 const app = express();
 
 // ✅ Fix for __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// ✅ Debug log: check if environment variables are loaded
+console.log("ENV CHECK:", {
+  MONGO_URI: process.env.MONGO_URI ? "✅" : "❌ Missing",
+  JWT_SECRET: process.env.JWT_SECRET ? "✅" : "❌ Missing",
+  FRONTEND_URL: process.env.FRONTEND_URL ? "✅" : "❌ Missing",
+});
+
 // ✅ Allowed origins (local + live + .env)
 const allowedOrigins = [
   "http://localhost:3000",
-  process.env.FRONTEND_URL, // dynamic frontend URL
+  process.env.FRONTEND_URL,
   "https://joblinknigeria.vercel.app",
 ];
 
-// ✅ CORS middleware (handles both browser + Postman)
+// ✅ CORS middleware
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin) return callback(null, true); // Allow Postman or server-to-server
+      if (!origin) return callback(null, true);
       if (allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -52,7 +62,7 @@ app.use(express.urlencoded({ extended: true }));
 // ✅ Serve uploaded files
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// ✅ Health check route (for Render)
+// ✅ Health check route
 app.get("/test", (req, res) => {
   res.json({ message: "Backend connected successfully!" });
 });
@@ -70,6 +80,4 @@ mongoose
 
 // ✅ Start Server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () =>
-  console.log(`🚀 Server running on port ${PORT}`)
-);
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
