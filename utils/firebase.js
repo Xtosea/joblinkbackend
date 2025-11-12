@@ -1,20 +1,17 @@
-import admin from "firebase-admin";
-import fs from "fs";
+import { initializeApp, cert } from "firebase-admin/app";
+import { getStorage } from "firebase-admin/storage";
 
-// Path to Render Secret File
-const pathToServiceAccount = "/etc/secrets/firebase-admin.json";
+const serviceAccount = JSON.parse(
+  process.env.FIREBASE_SERVICE_ACCOUNT
+);
 
-if (!fs.existsSync(pathToServiceAccount)) {
-  throw new Error(`Firebase service account file not found at ${pathToServiceAccount}`);
-}
-
-// Parse the JSON
-const serviceAccount = JSON.parse(fs.readFileSync(pathToServiceAccount, "utf8"));
-
-// Initialize Firebase Admin
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  storageBucket: process.env.FIREBASE_BUCKET, // set this in Render env vars
+initializeApp({
+  credential: cert({
+    projectId: serviceAccount.project_id,
+    clientEmail: serviceAccount.client_email,
+    privateKey: serviceAccount.private_key.replace(/\\n/g, "\n"),
+  }),
+  storageBucket: process.env.FIREBASE_BUCKET,
 });
 
-export const bucket = admin.storage().bucket();
+export const bucket = getStorage().bucket();
