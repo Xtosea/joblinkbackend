@@ -1,14 +1,37 @@
+// src/utils/firebase.js
+import fs from "fs";
 import { initializeApp, cert } from "firebase-admin/app";
 import { getStorage } from "firebase-admin/storage";
 
-if (!process.env.FIREBASE_SERVICE_ACCOUNT_BASE64) {
-  console.error("❌ FIREBASE_SERVICE_ACCOUNT_BASE64 is missing");
+// ---------- Load Firebase credentials ----------
+let serviceAccount;
+
+try {
+  if (process.env.FIREBASE_SERVICE_ACCOUNT_BASE64) {
+    // Decode Base64 from environment variable
+    serviceAccount = JSON.parse(
+      Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_BASE64, "base64").toString("utf-8")
+    );
+    console.log("✅ Loaded Firebase credentials from Base64 env var");
+  } else if (fs.existsSync("/etc/secrets/firebase-service-account.json")) {
+    // Read secret file from Render
+    const fileContent = fs.readFileSync("/etc/secrets/firebase-service-account.json", "utf-8");
+    serviceAccount = JSON.parse(fileContent);
+    console.log("✅ Loaded Firebase credentials from Secret File");
+  } else {
+    console.error("❌ FIREBASE credentials not found. Set Base64 env var or Secret File!");
+    process.exit(1);
+  }
+} catch (err) {
+  console.error("❌ Failed to parse Firebase credentials:", err.message);
   process.exit(1);
 }
 
-const serviceAccount = JSON.parse(
-  Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_BASE64, "base64").toString("utf-8")
-);
+// ---------- Initialize Firebase ----------
+if (!process.env.FIREBASE_BUCKET) {
+  console.error("❌ FIREBASE_BUCKET env variable is missing");
+  process.exit(1);
+}
 
 initializeApp({
   credential: cert({
@@ -20,3 +43,5 @@ initializeApp({
 });
 
 export const bucket = getStorage().bucket();
+
+console.log("✅ Firebase initialized successfully");
