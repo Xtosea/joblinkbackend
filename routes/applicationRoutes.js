@@ -7,7 +7,7 @@ import {
   replyToApplication
 } from "../controllers/applicationController.js";
 import { protect } from "../middleware/authMiddleware.js";
-import { uploadFileToFirebase } from "../utils/uploadFirebase.js";
+import { upload } from "../utils/firebaseUpload.js";
 
 const router = express.Router();
 
