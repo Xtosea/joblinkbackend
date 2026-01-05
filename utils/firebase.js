@@ -2,16 +2,12 @@
 import { initializeApp, cert } from "firebase-admin/app";
 import { getStorage } from "firebase-admin/storage";
 
-/**
- * Decode Base64 Firebase service account
- */
 if (!process.env.FIREBASE_SERVICE_ACCOUNT_BASE64) {
   console.error("❌ FIREBASE_SERVICE_ACCOUNT_BASE64 is missing");
   process.exit(1);
 }
 
 let serviceAccount;
-
 try {
   const decoded = Buffer.from(
     process.env.FIREBASE_SERVICE_ACCOUNT_BASE64,
