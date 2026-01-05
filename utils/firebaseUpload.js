@@ -1,28 +1,43 @@
-import multer from "multer";
-import { bucket } from "./firebase.js";
-import { v4 as uuidv4 } from "uuid";
+import fs from "fs";
+import { initializeApp, cert } from "firebase-admin/app";
+import { getStorage } from "firebase-admin/storage";
 
-const storage = multer.memoryStorage();
-export const upload = multer({ storage });
+// ---------- Load Firebase credentials ----------
+let serviceAccount;
 
-export const uploadFileToFirebase = async (file, folder = "uploads") => {
-  if (!file) {
-    console.error("⚠️ No file provided to uploadFileToFirebase");
-    return null;
+try {
+  if (process.env.FIREBASE_SERVICE_ACCOUNT_BASE64) {
+    serviceAccount = JSON.parse(
+      Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_BASE64, "base64").toString("utf-8")
+    );
+    console.log("✅ Loaded Firebase credentials from Base64 env var");
+  } else if (fs.existsSync("/etc/secrets/firebase-service-account.json")) {
+    const fileContent = fs.readFileSync("/etc/secrets/firebase-service-account.json", "utf-8");
+    serviceAccount = JSON.parse(fileContent);
+    console.log("✅ Loaded Firebase credentials from Secret File");
+  } else {
+    console.error("❌ FIREBASE credentials not found. Set Base64 env var or Secret File!");
+    process.exit(1);
   }
+} catch (err) {
+  console.error("❌ Failed to parse Firebase credentials:", err.message);
+  process.exit(1);
+}
 
-  const filename = `${folder}/${Date.now()}-${uuidv4()}-${file.originalname}`;
-  const fileUpload = bucket.file(filename);
+// ---------- Initialize Firebase ----------
+if (!process.env.FIREBASE_BUCKET) {
+  console.error("❌ FIREBASE_BUCKET env variable is missing");
+  process.exit(1);
+}
 
-  try {
-    await fileUpload.save(file.buffer, { contentType: file.mimetype, resumable: false });
-    await fileUpload.makePublic();
+initializeApp({
+  credential: cert({
+    projectId: serviceAccount.project_id,
+    clientEmail: serviceAccount.client_email,
+    privateKey: serviceAccount.private_key.replace(/\\n/g, "\n"),
+  }),
+  storageBucket: process.env.FIREBASE_BUCKET,
+});
 
-    const publicUrl = `https://storage.googleapis.com/${bucket.name}/${filename}`;
-    console.log(`✅ File uploaded successfully: ${publicUrl}`);
-    return publicUrl;
-  } catch (err) {
-    console.error("❌ Failed to upload file to Firebase:", err.message);
-    return null;
-  }
-};
+export const bucket = getStorage().bucket();
+console.log("✅ Firebase initialized successfully");
