@@ -1,43 +1,55 @@
+// routes/applicationRoutes.js
 import express from "express";
-import multer from "multer";
-import {
-  createApplication,
-  getApplications,
-  replyToApplication
-} from "../controllers/applicationController.js";
-import { protect } from "../middleware/authMiddleware.js";
+import Application from "../models/Application.js"; // your Mongoose model
+import { upload } from "../middlewares/upload.js";
+import { bucket } from "../firebase.js";
 
 const router = express.Router();
 
-// ---------------- Multer Setup ----------------
-
-// Memory storage (Firebase uploads)
-const storageMemory = multer.memoryStorage();
-
-const uploadMemory = multer({
-  storage: storageMemory,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
-});
-
-// ---------------- Routes ----------------
-
-// 1️⃣ Create application (no files)
-router.post("/", createApplication);
-
-// 2️⃣ One-step submit application with optional files (Firebase)
+// Upload Proof & Resume
 router.post(
-  "/submit",
-  uploadMemory.fields([
+  "/upload/:id",
+  upload.fields([
     { name: "proofFile", maxCount: 1 },
     { name: "resumeFile", maxCount: 1 },
   ]),
-  createApplication
+  async (req, res) => {
+    try {
+      const appId = req.params.id;
+      const application = await Application.findById(appId);
+      if (!application) return res.status(404).json({ message: "Application not found" });
+
+      const { proofFile, resumeFile } = req.files;
+
+      if (!proofFile || !resumeFile) return res.status(400).json({ message: "Both files are required" });
+
+      // Helper to upload file to Firebase
+      const uploadToFirebase = async (file) => {
+        const fileName = `${Date.now()}_${file.originalname}`;
+        const fileRef = bucket.file(fileName);
+
+        await fileRef.save(file.buffer, {
+          contentType: file.mimetype,
+          public: true, // make it publicly accessible
+        });
+
+        return `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+      };
+
+      const proofUrl = await uploadToFirebase(proofFile[0]);
+      const resumeUrl = await uploadToFirebase(resumeFile[0]);
+
+      // Save URLs in MongoDB
+      application.proofUrl = proofUrl;
+      application.resumeUrl = resumeUrl;
+      await application.save();
+
+      res.json({ proofUrl, resumeUrl });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Upload failed", error: err.message });
+    }
+  }
 );
-
-// 3️⃣ Get all applications (admin only)
-router.get("/", protect, getApplications);
-
-// 4️⃣ Reply to application (admin only)
-router.put("/reply/:id", protect, replyToApplication);
 
 export default router;
