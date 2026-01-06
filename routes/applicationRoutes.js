@@ -1,34 +1,25 @@
-// routes/applicationRoutes.js
 import express from "express";
 import Application from "../models/Application.js";
 import { upload } from "../middleware/upload.js";
-import { bucket } from "../utils/firebase.js";
+import { uploadFileToFirebase } from "../utils/firebaseUpload.js";
 
 const router = express.Router();
 
 // ---------------- CREATE APPLICATION ----------------
-// routes/applicationRoutes.js
 router.post("/", async (req, res) => {
   try {
-    const { fullname, email, mobile, jobType, jobPosition } = req.body;
     const application = await Application.create({
-      fullname,
-      email,
-      mobile,
-      jobType,
-      jobPosition,
+      ...req.body,
       status: "Pending",
     });
 
-    // Return application ID correctly
-    res.status(201).json(application); // or { _id: application._id } 
+    res.status(201).json(application);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ message: err.message });
   }
 });
 
-// ---------------- UPLOAD PROOF & RESUME ----------------
+// ---------------- UPLOAD FILES ----------------
 router.post(
   "/upload/:id",
   upload.fields([
@@ -37,57 +28,50 @@ router.post(
   ]),
   async (req, res) => {
     try {
-      const appId = req.params.id;
-      if (!appId) return res.status(400).json({ message: "Missing application ID" });
+      const application = await Application.findById(req.params.id);
+      if (!application)
+        return res.status(404).json({ message: "Application not found" });
 
-      const application = await Application.findById(appId);
-      if (!application) return res.status(404).json({ message: "Application not found" });
+      if (!req.files?.proofFile || !req.files?.resumeFile)
+        return res.status(400).json({ message: "Both files required" });
 
-      const { proofFile, resumeFile } = req.files;
-      if (!proofFile || !resumeFile) return res.status(400).json({ message: "Both files are required" });
+      application.proofFile = await uploadFileToFirebase(
+        req.files.proofFile[0],
+        "proofs"
+      );
 
-      const uploadToFirebase = async (file) => {
-        const fileName = `${Date.now()}_${file.originalname}`;
-        const fileRef = bucket.file(fileName);
-        await fileRef.save(file.buffer, { contentType: file.mimetype, public: true });
-        return `https://storage.googleapis.com/${bucket.name}/${fileName}`;
-      };
+      application.resumeFile = await uploadFileToFirebase(
+        req.files.resumeFile[0],
+        "resumes"
+      );
 
-      application.proofFile = await uploadToFirebase(proofFile[0]);
-      application.resumeFile = await uploadToFirebase(resumeFile[0]);
       await application.save();
 
-      res.json({ proofFile: application.proofFile, resumeFile: application.resumeFile });
+      res.json({
+        proofFile: application.proofFile,
+        resumeFile: application.resumeFile,
+      });
     } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: "Upload failed", error: err.message });
+      console.error("UPLOAD ERROR:", err);
+      res.status(500).json({ message: err.message });
     }
   }
 );
 
 // ---------------- GET ALL APPLICATIONS ----------------
 router.get("/", async (req, res) => {
-  try {
-    const applications = await Application.find().sort({ createdAt: -1 });
-    res.json(applications);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+  const apps = await Application.find().sort({ createdAt: -1 });
+  res.json(apps);
 });
 
-// ---------------- REPLY TO APPLICATION ----------------
+// ---------------- REPLY ----------------
 router.post("/reply/:id", async (req, res) => {
-  try {
-    const { reply, status } = req.body;
-    const updated = await Application.findByIdAndUpdate(
-      req.params.id,
-      { reply, status: status || "Replied" },
-      { new: true }
-    );
-    res.json(updated);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+  const updated = await Application.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    { new: true }
+  );
+  res.json(updated);
 });
 
 export default router;
