@@ -1,3 +1,4 @@
+// models/Application.js
 import mongoose from "mongoose";
 
 const applicationSchema = new mongoose.Schema(
@@ -11,8 +12,8 @@ const applicationSchema = new mongoose.Schema(
       required: true 
     },
     jobPosition: { type: String, required: true, trim: true },
-    proofFile: { type: String },
-    resumeFile: { type: String },
+    proofFile: { type: String },  // Firebase URL for proof
+    resumeFile: { type: String }, // Firebase URL for resume
     reply: { type: String, default: "" },
     status: { 
       type: String, 
