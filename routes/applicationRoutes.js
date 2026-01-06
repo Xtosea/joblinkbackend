@@ -38,6 +38,8 @@ router.post(
   async (req, res) => {
     try {
       const appId = req.params.id;
+      if (!appId) return res.status(400).json({ message: "Missing application ID" });
+
       const application = await Application.findById(appId);
       if (!application) return res.status(404).json({ message: "Application not found" });
 
@@ -47,23 +49,15 @@ router.post(
       const uploadToFirebase = async (file) => {
         const fileName = `${Date.now()}_${file.originalname}`;
         const fileRef = bucket.file(fileName);
-
-        await fileRef.save(file.buffer, {
-          contentType: file.mimetype,
-          public: true,
-        });
-
+        await fileRef.save(file.buffer, { contentType: file.mimetype, public: true });
         return `https://storage.googleapis.com/${bucket.name}/${fileName}`;
       };
 
-      const proofUrl = await uploadToFirebase(proofFile[0]);
-      const resumeUrl = await uploadToFirebase(resumeFile[0]);
-
-      application.proofFile = proofUrl;
-      application.resumeFile = resumeUrl;
+      application.proofFile = await uploadToFirebase(proofFile[0]);
+      application.resumeFile = await uploadToFirebase(resumeFile[0]);
       await application.save();
 
-      res.json({ proofFile: proofUrl, resumeFile: resumeUrl });
+      res.json({ proofFile: application.proofFile, resumeFile: application.resumeFile });
     } catch (err) {
       console.error(err);
       res.status(500).json({ message: "Upload failed", error: err.message });
