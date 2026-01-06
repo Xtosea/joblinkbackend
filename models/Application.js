@@ -1,9 +1,9 @@
-// models/Application.js
 import mongoose from "mongoose";
 
 const applicationSchema = new mongoose.Schema(
   {
     fullname: { type: String, required: true, trim: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // Reference to the user
     email: { type: String, required: true, trim: true },
     mobile: { type: String, required: true, trim: true },
     jobType: { 
@@ -21,7 +21,7 @@ const applicationSchema = new mongoose.Schema(
       default: "Pending" 
     },
   },
-  { timestamps: true } // Adds createdAt and updatedAt automatically
+  { timestamps: true } // Automatically adds createdAt and updatedAt
 );
 
 export default mongoose.model("Application", applicationSchema);
