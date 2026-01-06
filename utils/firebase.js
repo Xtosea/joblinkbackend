@@ -1,13 +1,17 @@
-// firebase.js
-import admin from "firebase-admin";
+import admin from 'firebase-admin';
 
-// Load Base64 service account from env
-const serviceAccountBase64 = process.env.FIREBASE_SERVICE_ACCOUNT;
-const serviceAccount = JSON.parse(Buffer.from(serviceAccountBase64, "base64").toString("utf-8"));
+if (!process.env.FIREBASE_BASE64 || !process.env.FIREBASE_BUCKET) {
+  throw new Error('Missing Firebase env variables');
+}
+
+const serviceAccount = JSON.parse(
+  Buffer.from(process.env.FIREBASE_BASE64, 'base64').toString('utf-8')
+);
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  storageBucket: process.env.FIREBASE_BUCKET, // e.g., "joblink-nigeria.appspot.com"
+  storageBucket: process.env.FIREBASE_BUCKET,
 });
 
 export const bucket = admin.storage().bucket();
+export default admin;
