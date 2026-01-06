@@ -1,10 +1,14 @@
 import express from "express";
+import multer from "multer";
 import Application from "../models/Application.js";
-import cloudinary from "../config
+import cloudinary from "../config/cloudinary.js";
 
 const router = express.Router();
 
-// CREATE APPLICATION
+// Multer (temporary storage)
+const upload = multer({ dest: "uploads/" });
+
+/* ---------------- CREATE APPLICATION ---------------- */
 router.post("/", async (req, res) => {
   try {
     const { fullname, email, mobile, jobType, jobPosition } = req.body;
@@ -22,40 +26,51 @@ router.post("/", async (req, res) => {
       status: "Pending",
     });
 
-    res.status(201).json({ _id: application._id });
+    res.status(201).json({ success: true, application });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ message: err.message });
   }
 });
 
-// UPLOAD FILES
-router.patch("/upload/:id", async (req, res) => {
-  try {
-  
-// Inside your POST route
-const proofFile = req.files.proofFile;   // from express-fileupload or multer
-const resumeFile = req.files.resumeFile;
+/* ---------------- UPLOAD FILES ---------------- */
+router.patch(
+  "/upload/:id",
+  upload.fields([
+    { name: "proofFile", maxCount: 1 },
+    { name: "resumeFile", maxCount: 1 },
+  ]),
+  async (req, res) => {
+    try {
+      const app = await Application.findById(req.params.id);
+      if (!app) return res.status(404).json({ message: "Application not found" });
 
-// Upload proof file
-const proofResult = await cloudinary.uploader.upload(proofFile.tempFilePath, {
-  folder: "applications/proofs",
-});
+      let proofUrl, resumeUrl;
 
-// Upload resume file
-const resumeResult = await cloudinary.uploader.upload(resumeFile.tempFilePath, {
-  folder: "applications/resumes",
-});
+      if (req.files?.proofFile) {
+        const result = await cloudinary.uploader.upload(
+          req.files.proofFile[0].path,
+          { folder: "applications/proofs" }
+        );
+        proofUrl = result.secure_url;
+      }
 
-// Save URLs in DB
-const application = await Application.create({
-  fullname,
-  email,
-  mobile,
-  jobType,
-  jobPosition,
-  proofFile: proofResult.secure_url,
-  resumeFile: resumeResult.secure_url,
-});
+      if (req.files?.resumeFile) {
+        const result = await cloudinary.uploader.upload(
+          req.files.resumeFile[0].path,
+          { folder: "applications/resumes" }
+        );
+        resumeUrl = result.secure_url;
+      }
+
+      app.proofFile = proofUrl;
+      app.resumeFile = resumeUrl;
+      await app.save();
+
+      res.json({ success: true, application: app });
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  }
+);
 
 export default router;
