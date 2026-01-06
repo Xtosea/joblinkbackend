@@ -1,4 +1,3 @@
-// routes/applicationRoutes.js
 import express from "express";
 import Application from "../models/Application.js";
 
@@ -9,6 +8,10 @@ router.post("/", async (req, res) => {
   try {
     const { fullname, email, mobile, jobType, jobPosition } = req.body;
 
+    if (!fullname || !email) {
+      return res.status(400).json({ message: "Name and email are required" });
+    }
+
     const application = await Application.create({
       fullname,
       email,
@@ -18,7 +21,6 @@ router.post("/", async (req, res) => {
       status: "Pending",
     });
 
-    // Return only what frontend needs
     res.status(201).json({ _id: application._id });
   } catch (err) {
     console.error(err);
@@ -26,7 +28,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-// routes/applicationRoutes.js
+// UPLOAD FILES
 router.patch("/upload/:id", async (req, res) => {
   try {
     const { proofFile, resumeFile } = req.body;
@@ -43,6 +45,5 @@ router.patch("/upload/:id", async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
-
 
 export default router;
