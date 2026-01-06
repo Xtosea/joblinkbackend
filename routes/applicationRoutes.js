@@ -6,6 +6,28 @@ import { bucket } from "../utils/firebase.js";
 
 const router = express.Router();
 
+// ---------------- CREATE APPLICATION ----------------
+router.post("/", async (req, res) => {
+  try {
+    const { fullname, email, mobile, jobType, jobPosition } = req.body;
+
+    const application = await Application.create({
+      fullname,
+      email,
+      mobile,
+      jobType,
+      jobPosition,
+      status: "Pending",
+    });
+
+    // ✅ Return the application object (for frontend navigation)
+    res.status(201).json({ application });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // ---------------- UPLOAD PROOF & RESUME ----------------
 router.post(
   "/upload/:id",
@@ -37,36 +59,17 @@ router.post(
       const proofUrl = await uploadToFirebase(proofFile[0]);
       const resumeUrl = await uploadToFirebase(resumeFile[0]);
 
-      application.proofUrl = proofUrl;
-      application.resumeUrl = resumeUrl;
+      application.proofFile = proofUrl;
+      application.resumeFile = resumeUrl;
       await application.save();
 
-      res.json({ proofUrl, resumeUrl });
+      res.json({ proofFile: proofUrl, resumeFile: resumeUrl });
     } catch (err) {
       console.error(err);
       res.status(500).json({ message: "Upload failed", error: err.message });
     }
   }
 );
-
-// ---------------- CREATE APPLICATION ----------------
-router.post("/", async (req, res) => {
-  try {
-    const { fullname, email, mobile, jobType, jobPosition } = req.body;
-    const application = await Application.create({
-      fullname,
-      email,
-      mobile,
-      jobType,
-      jobPosition,
-      status: "Pending",
-    });
-    res.status(201).json({ application });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: err.message });
-  }
-});
 
 // ---------------- GET ALL APPLICATIONS ----------------
 router.get("/", async (req, res) => {
