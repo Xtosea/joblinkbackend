@@ -32,6 +32,16 @@ router.post("/", async (req, res) => {
   }
 });
 
+// ---------------- GET ALL APPLICATIONS (ADMIN) ----------------
+router.get("/", async (req, res) => {
+  try {
+    const applications = await Application.find().sort({ createdAt: -1 });
+    res.json(applications);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 /* ---------------- UPLOAD FILES ---------------- */
 router.patch(
   "/upload/:id",
