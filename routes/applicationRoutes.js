@@ -48,6 +48,17 @@ router.post(
     } catch (err) {
       console.error(err);
       res.status(500).json({ message: "Upload failed", error: err.message });
+
+const router = express.Router();
+
+// Example GET all applications
+router.get("/", async (req, res) => {
+  try {
+    const applications = await Application.find();
+    res.json(applications);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+
     }
   }
 );
