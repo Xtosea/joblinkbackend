@@ -1,17 +1,35 @@
-import admin from 'firebase-admin';
+// utils/firebase.js
+import { initializeApp, cert, getApp, getApps } from "firebase-admin/app";
+import { getStorage } from "firebase-admin/storage";
 
-if (!process.env.FIREBASE_BASE64 || !process.env.FIREBASE_BUCKET) {
-  throw new Error('Missing Firebase env variables');
+// 🔹 Read environment variables
+const serviceAccountBase64 = process.env.FIREBASE_SERVICE_ACCOUNT_BASE64;
+const bucketName = process.env.FIREBASE_BUCKET;
+
+if (!serviceAccountBase64 || !bucketName) {
+  throw new Error('Missing Firebase env variables. Make sure FIREBASE_SERVICE_ACCOUNT_BASE64 and FIREBASE_BUCKET are set.');
 }
 
-const serviceAccount = JSON.parse(
-  Buffer.from(process.env.FIREBASE_BASE64, 'base64').toString('utf-8')
-);
+// 🔹 Decode the Base64 service account JSON
+let serviceAccount;
+try {
+  serviceAccount = JSON.parse(
+    Buffer.from(serviceAccountBase64, 'base64').toString('utf-8')
+  );
+} catch (err) {
+  throw new Error('Invalid Firebase service account JSON. Make sure it is Base64 encoded correctly.');
+}
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  storageBucket: process.env.FIREBASE_BUCKET,
-});
+// 🔹 Initialize Firebase Admin (only once)
+let app;
+if (!getApps().length) {
+  app = initializeApp({
+    credential: cert(serviceAccount),
+    storageBucket: bucketName,
+  });
+} else {
+  app = getApp();
+}
 
-export const bucket = admin.storage().bucket();
-export default admin;
+// 🔹 Export the storage instance for file uploads
+export const bucket = getStorage(app).bucket();
