@@ -26,4 +26,23 @@ router.post("/", async (req, res) => {
   }
 });
 
+// routes/applicationRoutes.js
+router.patch("/upload/:id", async (req, res) => {
+  try {
+    const { proofFile, resumeFile } = req.body;
+    const application = await Application.findById(req.params.id);
+    if (!application) return res.status(404).json({ message: "Application not found" });
+
+    application.proofFile = proofFile;
+    application.resumeFile = resumeFile;
+    await application.save();
+
+    res.json({ success: true, application });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
 export default router;
