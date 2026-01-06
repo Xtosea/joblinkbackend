@@ -8,6 +8,15 @@ const router = express.Router();
 // Multer (temporary storage)
 const upload = multer({ dest: "uploads/" });
 
+// Nodemailer config
+const transporter = nodemailer.createTransport({
+  service: "Gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
 /* ---------------- CREATE APPLICATION ---------------- */
 router.post("/", async (req, res) => {
   try {
@@ -27,6 +36,36 @@ router.post("/", async (req, res) => {
     });
 
     res.status(201).json({ success: true, application });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Send auto email with upload link
+    const uploadLink = `${process.env.FRONTEND_URL}/upload?id=${application._id}`;
+    await transporter.sendMail({
+      from: `"JobLink" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Application Received - Next Steps",
+      html: `
+        <p>Hello ${fullname},</p>
+        <p>Your application has been received!</p>
+        <p>Please upload your proof of payment and CV here: <a href="${uploadLink}">${uploadLink}</a></p>
+        <p>Follow the instructions carefully.</p>
+      `,
+    });
+
+    res.status(201).json({ success: true, application });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// ---------------- GET APPLICANT HISTORY ----------------
+router.get("/me", isAuth, async (req, res) => {
+  try {
+    const apps = await Application.find({ userId: req.user._id }).sort({ createdAt: -1 });
+    res.json(apps);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
