@@ -7,10 +7,10 @@ import { bucket } from "../utils/firebase.js";
 const router = express.Router();
 
 // ---------------- CREATE APPLICATION ----------------
+// routes/applicationRoutes.js
 router.post("/", async (req, res) => {
   try {
     const { fullname, email, mobile, jobType, jobPosition } = req.body;
-
     const application = await Application.create({
       fullname,
       email,
@@ -20,8 +20,8 @@ router.post("/", async (req, res) => {
       status: "Pending",
     });
 
-    // ✅ Return the application object (for frontend navigation)
-    res.status(201).json({ application });
+    // Return application ID correctly
+    res.status(201).json(application); // or { _id: application._id } 
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: err.message });
