@@ -2,7 +2,7 @@
 import express from "express";
 import Application from "../models/Application.js"; // your Mongoose model
 import { upload } from "../middleware/upload.js";
-import { bucket } from "../firebase.js";
+import { bucket } from "../utils/firebase.js";
 
 const router = express.Router();
 
