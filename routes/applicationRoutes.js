@@ -1,5 +1,6 @@
 import express from "express";
 import Application from "../models/Application.js";
+import cloudinary from "../config
 
 const router = express.Router();
 
@@ -31,19 +32,30 @@ router.post("/", async (req, res) => {
 // UPLOAD FILES
 router.patch("/upload/:id", async (req, res) => {
   try {
-    const { proofFile, resumeFile } = req.body;
-    const application = await Application.findById(req.params.id);
-    if (!application) return res.status(404).json({ message: "Application not found" });
+  
+// Inside your POST route
+const proofFile = req.files.proofFile;   // from express-fileupload or multer
+const resumeFile = req.files.resumeFile;
 
-    application.proofFile = proofFile;
-    application.resumeFile = resumeFile;
-    await application.save();
+// Upload proof file
+const proofResult = await cloudinary.uploader.upload(proofFile.tempFilePath, {
+  folder: "applications/proofs",
+});
 
-    res.json({ success: true, application });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: err.message });
-  }
+// Upload resume file
+const resumeResult = await cloudinary.uploader.upload(resumeFile.tempFilePath, {
+  folder: "applications/resumes",
+});
+
+// Save URLs in DB
+const application = await Application.create({
+  fullname,
+  email,
+  mobile,
+  jobType,
+  jobPosition,
+  proofFile: proofResult.secure_url,
+  resumeFile: resumeResult.secure_url,
 });
 
 export default router;
