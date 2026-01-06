@@ -1,12 +1,12 @@
 // routes/applicationRoutes.js
 import express from "express";
-import Application from "../models/Application.js"; // your Mongoose model
+import Application from "../models/Application.js";
 import { upload } from "../middleware/upload.js";
 import { bucket } from "../utils/firebase.js";
 
 const router = express.Router();
 
-// Upload Proof & Resume
+// ---------------- UPLOAD PROOF & RESUME ----------------
 router.post(
   "/upload/:id",
   upload.fields([
@@ -20,17 +20,15 @@ router.post(
       if (!application) return res.status(404).json({ message: "Application not found" });
 
       const { proofFile, resumeFile } = req.files;
-
       if (!proofFile || !resumeFile) return res.status(400).json({ message: "Both files are required" });
 
-      // Helper to upload file to Firebase
       const uploadToFirebase = async (file) => {
         const fileName = `${Date.now()}_${file.originalname}`;
         const fileRef = bucket.file(fileName);
 
         await fileRef.save(file.buffer, {
           contentType: file.mimetype,
-          public: true, // make it publicly accessible
+          public: true,
         });
 
         return `https://storage.googleapis.com/${bucket.name}/${fileName}`;
@@ -39,7 +37,6 @@ router.post(
       const proofUrl = await uploadToFirebase(proofFile[0]);
       const resumeUrl = await uploadToFirebase(resumeFile[0]);
 
-      // Save URLs in MongoDB
       application.proofUrl = proofUrl;
       application.resumeUrl = resumeUrl;
       await application.save();
@@ -48,19 +45,52 @@ router.post(
     } catch (err) {
       console.error(err);
       res.status(500).json({ message: "Upload failed", error: err.message });
-
-const router = express.Router();
-
-// Example GET all applications
-router.get("/", async (req, res) => {
-  try {
-    const applications = await Application.find();
-    res.json(applications);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-
     }
   }
 );
+
+// ---------------- CREATE APPLICATION ----------------
+router.post("/", async (req, res) => {
+  try {
+    const { fullname, email, mobile, jobType, jobPosition } = req.body;
+    const application = await Application.create({
+      fullname,
+      email,
+      mobile,
+      jobType,
+      jobPosition,
+      status: "Pending",
+    });
+    res.status(201).json({ application });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// ---------------- GET ALL APPLICATIONS ----------------
+router.get("/", async (req, res) => {
+  try {
+    const applications = await Application.find().sort({ createdAt: -1 });
+    res.json(applications);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// ---------------- REPLY TO APPLICATION ----------------
+router.post("/reply/:id", async (req, res) => {
+  try {
+    const { reply, status } = req.body;
+    const updated = await Application.findByIdAndUpdate(
+      req.params.id,
+      { reply, status: status || "Replied" },
+      { new: true }
+    );
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 
 export default router;
