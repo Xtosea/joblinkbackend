@@ -1,4 +1,5 @@
-import { initializeApp, cert, getApps } from "firebase-admin/app";
+// src/utils/firebase.js
+import { initializeApp, cert } from "firebase-admin/app";
 import { getStorage } from "firebase-admin/storage";
 
 const serviceAccountBase64 = process.env.FIREBASE_SERVICE_ACCOUNT_BASE64;
@@ -12,12 +13,9 @@ const serviceAccount = JSON.parse(
   Buffer.from(serviceAccountBase64, "base64").toString("utf-8")
 );
 
-// Prevent re-initialization on hot reloads
-if (!getApps().length) {
-  initializeApp({
-    credential: cert(serviceAccount),
-    storageBucket: bucketName,
-  });
-}
+initializeApp({
+  credential: cert(serviceAccount),
+  storageBucket: bucketName,
+});
 
 export const bucket = getStorage().bucket();
