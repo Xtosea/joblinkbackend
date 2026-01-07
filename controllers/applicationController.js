@@ -1,63 +1,68 @@
+import crypto from "crypto";
 import Application from "../models/Application.js";
-import { uploadFileToFirebase } from "../utils/firebaseUpload.js";
+import cloudinary from "../config/cloudinary.js";
+import { sendApplicationEmail } from "../utils/mailer.js";
 
-// ---------------- CREATE APPLICATION ----------------
+// ================= CREATE APPLICATION =================
 export const createApplication = async (req, res) => {
-  try {
-    const { fullname, email, mobile, jobType, jobPosition } = req.body;
+  const { fullname, email, mobile, jobType, jobPosition } = req.body;
 
-    let proofFile = null;
-    let resumeFile = null;
-
-    if (req.files?.proofFile?.[0]) {
-      proofFile = await uploadFileToFirebase(req.files.proofFile[0], "proofs");
-    }
-
-    if (req.files?.resumeFile?.[0]) {
-      resumeFile = await uploadFileToFirebase(req.files.resumeFile[0], "resumes");
-    }
-
-    const application = await Application.create({
-      fullname,
-      email,
-      mobile,
-      jobType,
-      jobPosition,
-      proofFile,
-      resumeFile,
-      status: "Pending",
-    });
-
-    res.status(201).json({ success: true, application });
-  } catch (error) {
-    console.error("Create Application Error:", error);
-    res.status(500).json({ success: false, message: error.message });
+  if (!fullname || !email || !mobile || !jobType || !jobPosition) {
+    return res.status(400).json({ message: "All fields are required" });
   }
+
+  const token = crypto.randomBytes(32).toString("hex");
+
+  const application = await Application.create({
+    fullname,
+    email,
+    mobile,
+    jobType,
+    jobPosition,
+    emailToken: token,
+    tokenExpiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000),
+  });
+
+  const link = `${process.env.FRONTEND_URL}/applicant/${token}`;
+
+  await sendApplicationEmail({ to: email, fullname, link });
+
+  res.status(201).json({ success: true });
 };
 
-// ---------------- GET ALL APPLICATIONS (ADMIN) ----------------
-export const getApplications = async (req, res) => {
-  try {
-    const applications = await Application.find().sort({ createdAt: -1 });
-    res.json(applications);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+// ================= GET APPLICATION BY TOKEN =================
+export const getByToken = async (req, res) => {
+  const app = await Application.findOne({
+    emailToken: req.params.token,
+    tokenExpiresAt: { $gt: new Date() },
+  });
+
+  if (!app) {
+    return res.status(404).json({ message: "Link expired or invalid" });
   }
+
+  res.json(app);
 };
 
-// ---------------- REPLY TO APPLICATION ----------------
-export const replyToApplication = async (req, res) => {
-  try {
-    const { reply, status } = req.body;
+// ================= UPLOAD FILES =================
+export const uploadFiles = async (req, res) => {
+  const app = await Application.findOne({
+    emailToken: req.params.token,
+    tokenExpiresAt: { $gt: new Date() },
+  });
 
-    const updated = await Application.findByIdAndUpdate(
-      req.params.id,
-      { reply, status: status || "Replied" },
-      { new: true }
-    );
+  if (!app) return res.status(404).json({ message: "Invalid or expired link" });
 
-    res.json(updated);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  if (req.files?.proofFile) {
+    const proof = await cloudinary.uploader.upload(req.files.proofFile[0].path);
+    app.proofFile = proof.secure_url;
   }
+
+  if (req.files?.resumeFile) {
+    const resume = await cloudinary.uploader.upload(req.files.resumeFile[0].path);
+    app.resumeFile = resume.secure_url;
+  }
+
+  await app.save();
+  res.json({ success: true });
 };
