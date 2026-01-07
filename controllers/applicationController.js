@@ -44,6 +44,21 @@ export const getByToken = async (req, res) => {
   res.json(app);
 };
 
+
+export const resendEmail = async (req, res) => {
+  const app = await Application.findById(req.params.id);
+  if (!app) return res.status(404).json({ message: "Not found" });
+
+  const link = `${process.env.FRONTEND_URL}/applicant/${app.emailToken}`;
+  await sendApplicationEmail({
+    to: app.email,
+    fullname: app.fullname,
+    link,
+  });
+
+  res.json({ message: "Email resent successfully" });
+};
+
 // ================= UPLOAD FILES =================
 export const uploadFiles = async (req, res) => {
   const app = await Application.findOne({
