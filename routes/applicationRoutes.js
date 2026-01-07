@@ -4,7 +4,6 @@ import multer from "multer";
 import nodemailer from "nodemailer";
 import Application from "../models/Application.js";
 import cloudinary from "../config/cloudinary.js";
-import authMiddleware from "../middleware/authMiddleware.js"; // JWT auth middleware
 
 const router = express.Router();
 
