@@ -13,23 +13,9 @@ import { verifyAdmin } from "../middleware/auth.js"; // ✅ middleware for admin
 const router = express.Router();
 const upload = multer({ dest: "uploads/" });
 
-// ---------------- CREATE APPLICATION (PUBLIC) ----------------
-router.post("/", createApplication);
-
-// ---------------- GET APPLICATION BY TOKEN (PUBLIC, VIA EMAIL LINK) ----------------
-router.get("/access/:token", getByToken);
-
-// ---------------- GET ALL APPLICATIONS (ADMIN) ----------------
-router.get("/", verifyAdmin, getAllApplications);
-
-// ---------------- GET SINGLE APPLICATION BY ID (ADMIN) ----------------
-router.get("/:id", verifyAdmin, getApplicationById);
-
-
-// ---------------- RESEND EMAIL (ADMIN) ----------------
-router.patch("/resend/:id", verifyAdmin, resendEmail);
-
-// ---------------- UPLOAD FILES (PUBLIC VIA EMAIL LINK) ----------------
+// ---------------- PUBLIC ROUTES ----------------
+router.post("/", createApplication); // submit application
+router.get("/access/:token", getByToken); // get application via token link
 router.patch(
   "/upload/:token",
   upload.fields([
@@ -38,5 +24,10 @@ router.patch(
   ]),
   uploadFiles
 );
+
+// ---------------- ADMIN ROUTES ----------------
+router.get("/", verifyAdmin, getAllApplications); // list all
+router.get("/:id", verifyAdmin, getApplicationById); // get by ID
+router.patch("/resend/:id", verifyAdmin, resendEmail); // resend email
 
 export default router;
