@@ -39,7 +39,30 @@ export const createApplication = async (req, res) => {
   }
 };
 
-/* ================= GET APPLICATION BY TOKEN ================= */
+/* ================= GET ALL APPLICATIONS (ADMIN) ================= */
+export const getAllApplications = async (req, res) => {
+  try {
+    const applications = await Application.find().sort({ createdAt: -1 });
+    res.json(applications);
+  } catch (err) {
+    console.error("Get all applications error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+/* ================= GET APPLICATION BY ID (ADMIN) ================= */
+export const getApplicationById = async (req, res) => {
+  try {
+    const app = await Application.findById(req.params.id);
+    if (!app) return res.status(404).json({ message: "Application not found" });
+    res.json(app);
+  } catch (err) {
+    console.error("Get application by ID error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+/* ================= GET APPLICATION BY TOKEN (PUBLIC) ================= */
 export const getByToken = async (req, res) => {
   try {
     const app = await Application.findOne({
@@ -47,9 +70,7 @@ export const getByToken = async (req, res) => {
       tokenExpiresAt: { $gt: new Date() },
     });
 
-    if (!app) {
-      return res.status(404).json({ message: "Link expired or invalid" });
-    }
+    if (!app) return res.status(404).json({ message: "Link expired or invalid" });
 
     res.json(app);
   } catch (err) {
@@ -58,13 +79,12 @@ export const getByToken = async (req, res) => {
   }
 };
 
-/* ================= RESEND EMAIL ================= */
+/* ================= RESEND EMAIL (ADMIN) ================= */
 export const resendEmail = async (req, res) => {
   try {
     const app = await Application.findById(req.params.id);
     if (!app) return res.status(404).json({ message: "Application not found" });
 
-    // Refresh expiry
     app.tokenExpiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
     await app.save();
 
@@ -83,7 +103,7 @@ export const resendEmail = async (req, res) => {
   }
 };
 
-/* ================= UPLOAD FILES ================= */
+/* ================= UPLOAD FILES (PUBLIC) ================= */
 export const uploadFiles = async (req, res) => {
   try {
     const app = await Application.findOne({
@@ -91,36 +111,4 @@ export const uploadFiles = async (req, res) => {
       tokenExpiresAt: { $gt: new Date() },
     });
 
-    if (!app) {
-      return res.status(404).json({ message: "Invalid or expired link" });
-    }
-
-    if (req.files?.proofFile) {
-      const proof = await cloudinary.uploader.upload(
-        req.files.proofFile[0].path,
-        {
-          folder: "joblink/proofs",
-          resource_type: "auto",
-        }
-      );
-      app.proofFile = proof.secure_url;
-    }
-
-    if (req.files?.resumeFile) {
-      const resume = await cloudinary.uploader.upload(
-        req.files.resumeFile[0].path,
-        {
-          folder: "joblink/resumes",
-          resource_type: "auto",
-        }
-      );
-      app.resumeFile = resume.secure_url;
-    }
-
-    await app.save();
-    res.json({ success: true, message: "Files uploaded successfully" });
-  } catch (err) {
-    console.error("Upload files error:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-};
+    if (!app) return res.status(404).json({ message: "Invalid or expired link" });
