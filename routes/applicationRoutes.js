@@ -16,14 +16,15 @@ const upload = multer({ dest: "uploads/" });
 // ---------------- CREATE APPLICATION (PUBLIC) ----------------
 router.post("/", createApplication);
 
+// ---------------- GET APPLICATION BY TOKEN (PUBLIC, VIA EMAIL LINK) ----------------
+router.get("/access/:token", getByToken);
+
 // ---------------- GET ALL APPLICATIONS (ADMIN) ----------------
 router.get("/", verifyAdmin, getAllApplications);
 
 // ---------------- GET SINGLE APPLICATION BY ID (ADMIN) ----------------
 router.get("/:id", verifyAdmin, getApplicationById);
 
-// ---------------- GET APPLICATION BY TOKEN (PUBLIC, VIA EMAIL LINK) ----------------
-router.get("/access/:token", getByToken);
 
 // ---------------- RESEND EMAIL (ADMIN) ----------------
 router.patch("/resend/:id", verifyAdmin, resendEmail);
