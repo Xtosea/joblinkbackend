@@ -82,9 +82,11 @@ export const getByToken = async (req, res) => {
 /* ================= RESEND EMAIL (ADMIN) ================= */
 export const resendEmail = async (req, res) => {
   try {
+    // ✅ Admin authorization is expected from middleware
     const app = await Application.findById(req.params.id);
     if (!app) return res.status(404).json({ message: "Application not found" });
 
+    // Refresh token expiry
     app.tokenExpiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
     await app.save();
 
@@ -96,7 +98,7 @@ export const resendEmail = async (req, res) => {
       link,
     });
 
-    res.json({ message: "Email resent successfully" });
+    res.json({ success: true, message: "Email resent successfully" });
   } catch (err) {
     console.error("Resend email error:", err);
     res.status(500).json({ message: "Server error" });
