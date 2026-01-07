@@ -5,44 +5,35 @@ const transporter = nodemailer.createTransport({
   port: 465,
   secure: true,
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS, // Gmail App Password
+    user: process.env.EMAIL_USER,       // e.g. xto1971@gmail.com
+    pass: process.env.EMAIL_PASS,       // Gmail App Password
   },
 });
 
 export const sendApplicationEmail = async ({ to, fullname, link }) => {
   return transporter.sendMail({
-    from: `"JobLink" <${process.env.EMAIL_USER}>`,
-    to,
-    subject: "Application Received – Next Steps",
-    html: `
-      <p>Hello ${fullname},</p>
-      <p>Your application was received successfully.</p>
-      <p>Please upload your proof & CV using the link below:</p>
-      <p><a href="${link}">${link}</a></p>
-      <p><b>Note:</b> This link expires in 48 hours.</p>
-    `,
-  });
-};
-
-export const sendApplicationEmail = async ({ to, fullname, link }) => {
-  return transporter.sendMail({
-    from: `"JobLink Admin" <xto1971@gmail.com>`,
+    from: `"JobLink Admin" <${process.env.EMAIL_USER}>`,
     to,
     subject: "Application Received – Upload Proof",
     html: `
-      <p>Hello ${fullname},</p>
-      <p>Your application has been received.</p>
+      <p>Hello <b>${fullname}</b>,</p>
+
+      <p>Your application has been received successfully.</p>
 
       <p>
-        👉 <b>Click the link below to upload your proof & CV and track your application:</b>
+        👉 <b>Please click the link below to upload your proof of payment and CV:</b>
       </p>
 
-      <p><a href="${link}">${link}</a></p>
+      <p>
+        <a href="${link}" target="_blank">${link}</a>
+      </p>
 
-      <p>This link expires in 48 hours.</p>
+      <p><b>Important:</b> This link expires in <b>48 hours</b>.</p>
 
-      <p>Regards,<br/>JobLink Admin</p>
+      <p>
+        Regards,<br/>
+        <b>JobLink Admin</b>
+      </p>
     `,
   });
 };
