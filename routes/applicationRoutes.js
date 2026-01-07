@@ -28,7 +28,6 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // Create the application
     const application = await Application.create({
       fullname,
       email,
@@ -38,7 +37,7 @@ router.post("/", async (req, res) => {
       status: "Pending",
     });
 
-    // Send auto email with upload link
+    // Auto email with upload link
     const uploadLink = `${process.env.FRONTEND_URL}/upload?id=${application._id}`;
     await transporter.sendMail({
       from: `"JobLink" <${process.env.EMAIL_USER}>`,
@@ -46,25 +45,15 @@ router.post("/", async (req, res) => {
       subject: "Application Received - Next Steps",
       html: `
         <p>Hello ${fullname},</p>
-        <p>Your application has been received!</p>
-        <p>Please upload your proof of payment and CV here: <a href="${uploadLink}">${uploadLink}</a></p>
-        <p>Follow the instructions carefully.</p>
+        <p>Your application has been received.</p>
+        <p>Please upload your proof of payment and CV here:</p>
+        <p><a href="${uploadLink}">${uploadLink}</a></p>
       `,
     });
 
     res.status(201).json({ success: true, application });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// ---------------- GET APPLICANT HISTORY (SELF) ----------------
-router.get("/me", isAuth, async (req, res) => {
-  try {
-    const apps = await Application.find({ userId: req.user._id }).sort({ createdAt: -1 });
-    res.json(apps);
-  } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
@@ -79,10 +68,9 @@ router.get("/", async (req, res) => {
   }
 });
 
-// ---------------- UPLOAD FILES ----------------
+// ---------------- UPLOAD FILES (PUBLIC VIA EMAIL LINK) ----------------
 router.patch(
   "/upload/:id",
-  isAuth, // ensure user is logged in
   upload.fields([
     { name: "proofFile", maxCount: 1 },
     { name: "resumeFile", maxCount: 1 },
@@ -92,30 +80,24 @@ router.patch(
       const app = await Application.findById(req.params.id);
       if (!app) return res.status(404).json({ message: "Application not found" });
 
-      // ✅ Check ownership: only applicant can upload files
-      if (app.userId?.toString() !== req.user._id.toString()) {
-        return res.status(403).json({ message: "You cannot upload files for this application" });
-      }
-
       let proofUrl, resumeUrl;
 
-      // Upload Proof
       if (req.files?.proofFile) {
-        const result = await cloudinary.uploader.upload(req.files.proofFile[0].path, {
-          folder: "applications/proofs",
-        });
+        const result = await cloudinary.uploader.upload(
+          req.files.proofFile[0].path,
+          { folder: "applications/proofs" }
+        );
         proofUrl = result.secure_url;
       }
 
-      // Upload Resume
       if (req.files?.resumeFile) {
-        const result = await cloudinary.uploader.upload(req.files.resumeFile[0].path, {
-          folder: "applications/resumes",
-        });
+        const result = await cloudinary.uploader.upload(
+          req.files.resumeFile[0].path,
+          { folder: "applications/resumes" }
+        );
         resumeUrl = result.secure_url;
       }
 
-      // Save URLs
       if (proofUrl) app.proofFile = proofUrl;
       if (resumeUrl) app.resumeFile = resumeUrl;
 
