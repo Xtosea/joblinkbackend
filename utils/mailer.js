@@ -24,3 +24,25 @@ export const sendApplicationEmail = async ({ to, fullname, link }) => {
     `,
   });
 };
+
+export const sendApplicationEmail = async ({ to, fullname, link }) => {
+  return transporter.sendMail({
+    from: `"JobLink Admin" <xto1971@gmail.com>`,
+    to,
+    subject: "Application Received – Upload Proof",
+    html: `
+      <p>Hello ${fullname},</p>
+      <p>Your application has been received.</p>
+
+      <p>
+        👉 <b>Click the link below to upload your proof & CV and track your application:</b>
+      </p>
+
+      <p><a href="${link}">${link}</a></p>
+
+      <p>This link expires in 48 hours.</p>
+
+      <p>Regards,<br/>JobLink Admin</p>
+    `,
+  });
+};
