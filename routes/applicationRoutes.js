@@ -8,6 +8,7 @@ import {
   uploadFiles,
   getApplicationById,
 } from "../controllers/applicationController.js";
+import { verifyAdmin } from "../middleware/auth.js"; // ✅ middleware for admin auth
 
 const router = express.Router();
 const upload = multer({ dest: "uploads/" });
@@ -16,16 +17,16 @@ const upload = multer({ dest: "uploads/" });
 router.post("/", createApplication);
 
 // ---------------- GET ALL APPLICATIONS (ADMIN) ----------------
-router.get("/", getAllApplications);
+router.get("/", verifyAdmin, getAllApplications);
 
 // ---------------- GET SINGLE APPLICATION BY ID (ADMIN) ----------------
-router.get("/:id", getApplicationById);
+router.get("/:id", verifyAdmin, getApplicationById);
 
 // ---------------- GET APPLICATION BY TOKEN (PUBLIC, VIA EMAIL LINK) ----------------
 router.get("/access/:token", getByToken);
 
 // ---------------- RESEND EMAIL (ADMIN) ----------------
-router.post("/resend/:id", resendEmail);
+router.patch("/resend/:id", verifyAdmin, resendEmail);
 
 // ---------------- UPLOAD FILES (PUBLIC VIA EMAIL LINK) ----------------
 router.patch(
