@@ -7,13 +7,9 @@ import { sendApplicationEmail } from "../utils/mailer.js";
 export const createApplication = async (req, res) => {
   const { fullname, email, mobile, jobType, jobPosition } = req.body;
 
-  if (!fullname || !email || !mobile || !jobType || !jobPosition) {
-    return res.status(400).json({ message: "All fields are required" });
-  }
-
   const token = crypto.randomBytes(32).toString("hex");
 
-  const application = await Application.create({
+  const app = await Application.create({
     fullname,
     email,
     mobile,
@@ -23,9 +19,13 @@ export const createApplication = async (req, res) => {
     tokenExpiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000),
   });
 
-  const link = `${process.env.FRONTEND_URL}/applicant/${token}`;
+  const dashboardLink = `${process.env.FRONTEND_URL}/applicant/${token}`;
 
-  await sendApplicationEmail({ to: email, fullname, link });
+  await sendApplicationEmail({
+    to: email,
+    fullname,
+    link: dashboardLink,
+  });
 
   res.status(201).json({ success: true });
 };
