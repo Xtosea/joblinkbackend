@@ -3,7 +3,7 @@ import Application from "../models/Application.js";
 import cloudinary from "../config/cloudinary.js";
 import { sendApplicationEmail } from "../utils/mailer.js";
 
-/* ================= CREATE APPLICATION ================= */
+/* ================= CREATE APPLICATION (PUBLIC) ================= */
 export const createApplication = async (req, res) => {
   try {
     const { fullname, email, mobile, jobType, jobPosition } = req.body;
@@ -14,14 +14,14 @@ export const createApplication = async (req, res) => {
 
     const token = crypto.randomBytes(32).toString("hex");
 
-    const app = await Application.create({
+    await Application.create({
       fullname,
       email,
       mobile,
       jobType,
       jobPosition,
       emailToken: token,
-      tokenExpiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000),
+      tokenExpiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000), // 48 hours
     });
 
     const dashboardLink = `${process.env.FRONTEND_URL}/applicant/${token}`;
@@ -32,7 +32,10 @@ export const createApplication = async (req, res) => {
       link: dashboardLink,
     });
 
-    res.status(201).json({ success: true, message: "Application submitted" });
+    res.status(201).json({
+      success: true,
+      message: "Application submitted successfully",
+    });
   } catch (err) {
     console.error("Create application error:", err);
     res.status(500).json({ message: "Server error" });
@@ -54,7 +57,9 @@ export const getAllApplications = async (req, res) => {
 export const getApplicationById = async (req, res) => {
   try {
     const app = await Application.findById(req.params.id);
-    if (!app) return res.status(404).json({ message: "Application not found" });
+    if (!app) {
+      return res.status(404).json({ message: "Application not found" });
+    }
     res.json(app);
   } catch (err) {
     console.error("Get application by ID error:", err);
@@ -70,7 +75,9 @@ export const getByToken = async (req, res) => {
       tokenExpiresAt: { $gt: new Date() },
     });
 
-    if (!app) return res.status(404).json({ message: "Link expired or invalid" });
+    if (!app) {
+      return res.status(404).json({ message: "Link expired or invalid" });
+    }
 
     res.json(app);
   } catch (err) {
@@ -82,11 +89,11 @@ export const getByToken = async (req, res) => {
 /* ================= RESEND EMAIL (ADMIN) ================= */
 export const resendEmail = async (req, res) => {
   try {
-    // ✅ Admin authorization is expected from middleware
     const app = await Application.findById(req.params.id);
-    if (!app) return res.status(404).json({ message: "Application not found" });
+    if (!app) {
+      return res.status(404).json({ message: "Application not found" });
+    }
 
-    // Refresh token expiry
     app.tokenExpiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
     await app.save();
 
@@ -98,7 +105,10 @@ export const resendEmail = async (req, res) => {
       link,
     });
 
-    res.json({ success: true, message: "Email resent successfully" });
+    res.json({
+      success: true,
+      message: "Email resent successfully",
+    });
   } catch (err) {
     console.error("Resend email error:", err);
     res.status(500).json({ message: "Server error" });
@@ -113,4 +123,42 @@ export const uploadFiles = async (req, res) => {
       tokenExpiresAt: { $gt: new Date() },
     });
 
-    if (!app) return res.status(404).json({ message: "Invalid or expired link" });
+    if (!app) {
+      return res.status(404).json({ message: "Invalid or expired link" });
+    }
+
+    // Upload proof of payment
+    if (req.files?.proofFile?.[0]) {
+      const proofUpload = await cloudinary.uploader.upload(
+        req.files.proofFile[0].path,
+        {
+          folder: "joblink/proofs",
+          resource_type: "auto",
+        }
+      );
+      app.proofFile = proofUpload.secure_url;
+    }
+
+    // Upload resume
+    if (req.files?.resumeFile?.[0]) {
+      const resumeUpload = await cloudinary.uploader.upload(
+        req.files.resumeFile[0].path,
+        {
+          folder: "joblink/resumes",
+          resource_type: "auto",
+        }
+      );
+      app.resumeFile = resumeUpload.secure_url;
+    }
+
+    await app.save();
+
+    res.json({
+      success: true,
+      message: "Files uploaded successfully",
+    });
+  } catch (err) {
+    console.error("Upload files error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
