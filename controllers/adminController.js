@@ -1,7 +1,7 @@
 import asyncHandler from "express-async-handler";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import Admin from "../models/adminModel.js";
+import user from "../models/user.js";
 import Application from "../models/Application.js";
 
 // ======================
