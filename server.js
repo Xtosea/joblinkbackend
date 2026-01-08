@@ -7,6 +7,8 @@ import { fileURLToPath } from "url";
 
 import applicationRoutes from "./routes/applicationRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import express from "express";
+import { adminLogin } from "../controllers/adminController.js";
 
 dotenv.config();
 const app = express();
@@ -59,6 +61,7 @@ app.get("/test", (req, res) => {
 // ================= API ROUTES =================
 app.use("/api/auth", authRoutes); // login/register for applicants/admins
 app.use("/api/applications", applicationRoutes); // applicant submission + admin management
+app.use("/api/admin", adminRoutes);
 
 // ================= MONGODB =================
 mongoose
