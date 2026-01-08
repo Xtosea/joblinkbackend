@@ -16,6 +16,7 @@ export const createApplication = async (req, res) => {
   try {
     const { fullname, email, mobile, jobType, jobPosition } = req.body;
 
+    // Generate unique access token for this applicant
     const accessToken = crypto.randomBytes(32).toString("hex");
 
     const application = await Application.create({
@@ -27,27 +28,32 @@ export const createApplication = async (req, res) => {
       accessToken,
     });
 
+    // Link to upload proof or CV
     const accessLink = `${process.env.FRONTEND_URL}/upload/${accessToken}`;
 
+    // Send auto-response email to applicant
     await transporter.sendMail({
       to: email,
       subject: "Application Received",
       html: `
-        <h3>Hello ${fullname}</h3>
+        <h3>Hello ${fullname},</h3>
         <p>Your application was received successfully.</p>
-        <p>Upload your documents using the link below:</p>
+        <p>Please upload your documents (proof of payment / CV) using the link below:</p>
         <a href="${accessLink}">${accessLink}</a>
       `,
     });
 
-    res.status(201).json(application);
+    res.status(201).json({
+      message: "Application submitted successfully",
+      accessToken, // return token so frontend can store / use it
+    });
   } catch (err) {
     console.error("Create application error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-// ================= GET BY TOKEN =================
+// ================= GET APPLICATION BY TOKEN =================
 export const getByToken = async (req, res) => {
   try {
     const { token } = req.params;
@@ -88,33 +94,4 @@ export const uploadFiles = async (req, res) => {
     console.error("Upload error:", err);
     res.status(500).json({ message: "Upload failed" });
   }
-};
-
-// ================= ADMIN =================
-export const getAllApplications = async (req, res) => {
-  try {
-    const apps = await Application.find().sort({ createdAt: -1 });
-    res.json(apps);
-  } catch (err) {
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-export const getApplicationById = async (req, res) => {
-  const app = await Application.findById(req.params.id);
-  res.json(app);
-};
-
-export const resendEmail = async (req, res) => {
-  const app = await Application.findById(req.params.id);
-
-  const link = `${process.env.FRONTEND_URL}/upload/${app.accessToken}`;
-
-  await transporter.sendMail({
-    to: app.email,
-    subject: "Application Upload Link",
-    html: `<a href="${link}">${link}</a>`,
-  });
-
-  res.json({ message: "Email resent" });
 };
