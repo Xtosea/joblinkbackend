@@ -8,7 +8,7 @@ import { fileURLToPath } from "url";
 import applicationRoutes from "./routes/applicationRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 
-import { adminLogin } from "./controllers/adminController.js";
+import adminRoutes from "./routes/adminRoutes.js";
 
 dotenv.config();
 const app = express();
