@@ -4,18 +4,19 @@ import {
   createApplication,
   getByToken,
   uploadFiles,
-  getAllApplications,
-  resendEmail,
-  getApplicationById,
 } from "../controllers/applicationController.js";
-import { verifyToken, verifyAdmin } from "../middleware/auth.js";
 
 const router = express.Router();
 const upload = multer({ dest: "uploads/" });
 
+// ================== APPLICANT ROUTES ==================
+// Submit application
 router.post("/", createApplication);
+
+// Get application info by token (for upload page / history)
 router.get("/access/:token", getByToken);
 
+// Upload proof / resume files
 router.patch(
   "/upload/:token",
   upload.fields([
@@ -24,10 +25,5 @@ router.patch(
   ]),
   uploadFiles
 );
-
-// Admin
-router.get("/", verifyToken, verifyAdmin, getAllApplications);
-router.get("/:id", verifyToken, verifyAdmin, getApplicationById);
-router.patch("/resend/:id", verifyToken, verifyAdmin, resendEmail);
 
 export default router;
