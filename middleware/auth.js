@@ -1,10 +1,10 @@
 import jwt from "jsonwebtoken";
-import User from "../models/user.js";
+import User from "../models/User.js";
 
-export const verifyAdmin = async (req, res, next) => {
+// ✅ Verify JWT for any logged-in user
+export const verifyToken = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
-
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -13,14 +13,20 @@ export const verifyAdmin = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     const user = await User.findById(decoded.id);
-    if (!user || user.role !== "admin") {
-      return res.status(403).json({ message: "Forbidden: Admins only" });
-    }
+    if (!user) return res.status(401).json({ message: "User not found" });
 
     req.user = user; // attach user to request
     next();
   } catch (err) {
-    console.error("Admin auth error:", err);
+    console.error("Token verification error:", err);
     res.status(401).json({ message: "Invalid token" });
   }
+};
+
+// ✅ Only allow admins
+export const verifyAdmin = (req, res, next) => {
+  if (!req.user || req.user.role !== "admin") {
+    return res.status(403).json({ message: "Forbidden: Admins only" });
+  }
+  next();
 };
