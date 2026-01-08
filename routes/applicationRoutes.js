@@ -4,30 +4,27 @@ import {
   createApplication,
   getByToken,
   getAllApplications,
+  getApplicationById,
   resendEmail,
   uploadFiles,
-  getApplicationById,
 } from "../controllers/applicationController.js";
-import { verifyAdmin } from "../middleware/auth.js"; // ✅ middleware for admin auth
+import { verifyToken, verifyAdmin } from "../middleware/auth.js";
 
 const router = express.Router();
 const upload = multer({ dest: "uploads/" });
 
-// ---------------- PUBLIC ROUTES ----------------
-router.post("/", createApplication); // submit application
-router.get("/access/:token", getByToken); // get application via token link
+// Public routes
+router.post("/", createApplication);
+router.get("/access/:token", getByToken);
 router.patch(
   "/upload/:token",
-  upload.fields([
-    { name: "proofFile", maxCount: 1 },
-    { name: "resumeFile", maxCount: 1 },
-  ]),
+  upload.fields([{ name: "proofFile" }, { name: "resumeFile" }]),
   uploadFiles
 );
 
-// ---------------- ADMIN ROUTES ----------------
-router.get("/", verifyAdmin, getAllApplications); // list all
-router.get("/:id", verifyAdmin, getApplicationById); // get by ID
-router.patch("/resend/:id", verifyAdmin, resendEmail); // resend email
+// Admin routes
+router.get("/", verifyToken, verifyAdmin, getAllApplications);
+router.get("/:id", verifyToken, verifyAdmin, getApplicationById);
+router.patch("/resend/:id", verifyToken, verifyAdmin, resendEmail);
 
 export default router;
