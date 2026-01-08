@@ -7,7 +7,7 @@ import { fileURLToPath } from "url";
 
 import applicationRoutes from "./routes/applicationRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
-import express from "express";
+
 import { adminLogin } from "../controllers/adminController.js";
 
 dotenv.config();
