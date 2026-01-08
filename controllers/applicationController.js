@@ -1,77 +1,120 @@
-import crypto from "crypto";
 import Application from "../models/Application.js";
-import { sendApplicationEmail } from "../utils/mailer.js";
+import crypto from "crypto";
+import nodemailer from "nodemailer";
 
-/* ================= CREATE APPLICATION ================= */
+// ================= EMAIL SETUP =================
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
+// ================= CREATE APPLICATION =================
 export const createApplication = async (req, res) => {
   try {
     const { fullname, email, mobile, jobType, jobPosition } = req.body;
 
-    if (!fullname || !email || !mobile || !jobType || !jobPosition) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
+    const accessToken = crypto.randomBytes(32).toString("hex");
 
-    const token = crypto.randomBytes(32).toString("hex");
-
-    const app = await Application.create({
+    const application = await Application.create({
       fullname,
       email,
       mobile,
       jobType,
       jobPosition,
-      emailToken: token,
-      tokenExpiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000),
+      accessToken,
     });
 
-    const dashboardLink = `${process.env.FRONTEND_URL}/applicant/${token}`;
+    const accessLink = `${process.env.FRONTEND_URL}/upload/${accessToken}`;
 
-    await sendApplicationEmail({ to: email, fullname, link: dashboardLink });
+    await transporter.sendMail({
+      to: email,
+      subject: "Application Received",
+      html: `
+        <h3>Hello ${fullname}</h3>
+        <p>Your application was received successfully.</p>
+        <p>Upload your documents using the link below:</p>
+        <a href="${accessLink}">${accessLink}</a>
+      `,
+    });
 
-    res.status(201).json({ success: true, message: "Application submitted" });
+    res.status(201).json(application);
   } catch (err) {
     console.error("Create application error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-/* ================= GET ALL APPLICATIONS (ADMIN) ================= */
+// ================= GET BY TOKEN =================
+export const getByToken = async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    const application = await Application.findOne({ accessToken: token });
+    if (!application) {
+      return res.status(404).json({ message: "Invalid or expired link" });
+    }
+
+    res.json(application);
+  } catch (err) {
+    console.error("Get by token error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// ================= UPLOAD FILES =================
+export const uploadFiles = async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    const application = await Application.findOne({ accessToken: token });
+    if (!application) {
+      return res.status(404).json({ message: "Invalid token" });
+    }
+
+    if (req.files?.proofFile) {
+      application.proofFile = `/uploads/${req.files.proofFile[0].filename}`;
+    }
+
+    if (req.files?.resumeFile) {
+      application.resumeFile = `/uploads/${req.files.resumeFile[0].filename}`;
+    }
+
+    await application.save();
+    res.json({ message: "Files uploaded successfully" });
+  } catch (err) {
+    console.error("Upload error:", err);
+    res.status(500).json({ message: "Upload failed" });
+  }
+};
+
+// ================= ADMIN =================
 export const getAllApplications = async (req, res) => {
   try {
-    const applications = await Application.find().sort({ createdAt: -1 });
-    res.json(applications);
+    const apps = await Application.find().sort({ createdAt: -1 });
+    res.json(apps);
   } catch (err) {
-    console.error("Get all applications error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-/* ================= GET APPLICATION BY ID (ADMIN) ================= */
 export const getApplicationById = async (req, res) => {
-  try {
-    const app = await Application.findById(req.params.id);
-    if (!app) return res.status(404).json({ message: "Application not found" });
-    res.json(app);
-  } catch (err) {
-    console.error("Get application by ID error:", err);
-    res.status(500).json({ message: "Server error" });
-  }
+  const app = await Application.findById(req.params.id);
+  res.json(app);
 };
 
-/* ================= RESEND EMAIL (ADMIN) ================= */
 export const resendEmail = async (req, res) => {
-  try {
-    const app = await Application.findById(req.params.id);
-    if (!app) return res.status(404).json({ message: "Application not found" });
+  const app = await Application.findById(req.params.id);
 
-    app.tokenExpiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
-    await app.save();
+  const link = `${process.env.FRONTEND_URL}/upload/${app.accessToken}`;
 
-    const link = `${process.env.FRONTEND_URL}/applicant/${app.emailToken}`;
-    await sendApplicationEmail({ to: app.email, fullname: app.fullname, link });
+  await transporter.sendMail({
+    to: app.email,
+    subject: "Application Upload Link",
+    html: `<a href="${link}">${link}</a>`,
+  });
 
-    res.json({ success: true, message: "Email resent successfully" });
-  } catch (err) {
-    console.error("Resend email error:", err);
-    res.status(500).json({ message: "Server error" });
-  }
+  res.json({ message: "Email resent" });
 };
