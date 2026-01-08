@@ -8,7 +8,7 @@ import {
   getAllApplications,
   updateApplication,
 } from "../controllers/adminController.js";
-import { verifyToken, verifyAdmin } from "../middleware/authMiddleware.js";
+import { verifyToken, verifyAdmin } from "../middleware/auth.js";
 import Admin from "../models/adminModel.js";
 
 dotenv.config();
