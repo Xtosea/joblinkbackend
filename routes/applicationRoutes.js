@@ -3,26 +3,29 @@ import multer from "multer";
 import {
   createApplication,
   getByToken,
-  getAllApplications,
-  getApplicationById,
-  resendEmail,
   uploadFiles,
+  getAllApplications,
+  resendEmail,
+  getApplicationById,
 } from "../controllers/applicationController.js";
-import { verifyToken, verifyAdmin } from "../middleware/auth.js";
+import { verifyToken, verifyAdmin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 const upload = multer({ dest: "uploads/" });
 
-// Public routes
 router.post("/", createApplication);
 router.get("/access/:token", getByToken);
+
 router.patch(
   "/upload/:token",
-  upload.fields([{ name: "proofFile" }, { name: "resumeFile" }]),
+  upload.fields([
+    { name: "proofFile", maxCount: 1 },
+    { name: "resumeFile", maxCount: 1 },
+  ]),
   uploadFiles
 );
 
-// Admin routes
+// Admin
 router.get("/", verifyToken, verifyAdmin, getAllApplications);
 router.get("/:id", verifyToken, verifyAdmin, getApplicationById);
 router.patch("/resend/:id", verifyToken, verifyAdmin, resendEmail);
