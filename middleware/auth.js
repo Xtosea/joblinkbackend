@@ -1,32 +1,43 @@
 import jwt from "jsonwebtoken";
-import user from "../models/user.js";
+import Admin from "../models/adminModel.js";
 
-// ✅ Verify JWT for any logged-in user
-export const verifyToken = async (req, res, next) => {
+// ✅ Verify token (works for any logged-in user or admin)
+export const verifyToken = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ message: "No token provided" });
+  }
+
+  const token = authHeader.split(" ")[1];
+
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
-    const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    const user = await User.findById(decoded.id);
-    if (!user) return res.status(401).json({ message: "User not found" });
-
-    req.user = user; // attach user to request
+    req.user = decoded; // store decoded token (id, etc.)
     next();
   } catch (err) {
-    console.error("Token verification error:", err);
+    console.error("Invalid token:", err);
     res.status(401).json({ message: "Invalid token" });
   }
 };
 
-// ✅ Only allow admins
-export const verifyAdmin = (req, res, next) => {
-  if (!req.user || req.user.role !== "admin") {
-    return res.status(403).json({ message: "Forbidden: Admins only" });
+// ✅ Restrict access to admins only
+export const verifyAdmin = async (req, res, next) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized - no user ID" });
+    }
+
+    const admin = await Admin.findById(req.user.id);
+    if (!admin) {
+      return res.status(403).json({ message: "Access denied - admin only" });
+    }
+
+    next();
+  } catch (err) {
+    console.error("Admin verification error:", err);
+    res.status(500).json({ message: "Server error" });
   }
-  next();
 };
+
+// ✅ Alias (for compatibility with older routes)
+export const protect = verifyToken;
