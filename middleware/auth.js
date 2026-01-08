@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import User from "../models/User.js";
+import user from "../models/user.js";
 
 // ✅ Verify JWT for any logged-in user
 export const verifyToken = async (req, res, next) => {
