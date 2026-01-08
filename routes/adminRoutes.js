@@ -1,27 +1,27 @@
 import express from "express";
-import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 
 import {
   adminLogin,
   getAllApplications,
+  getApplicationById,
   updateApplication,
+  resendEmail,
 } from "../controllers/adminController.js";
-import { verifyToken, verifyAdmin } from "../middleware/auth.js";
-import Admin from "../models/adminModel.js";
 
-dotenv.config();
+import { verifyAdmin } from "../middleware/adminAuth.js";
+import Admin from "../models/adminModel.js";
 
 const router = express.Router();
 
-// ======================
-// 🔐 ADMIN LOGIN
-// ======================
+/* ======================
+   🔐 ADMIN AUTH
+====================== */
+
+// ✅ ADMIN LOGIN
 router.post("/login", adminLogin);
 
-// (Optional) — Route to register a new admin (only for initial setup)
-// You can remove this after creating your first admin manually in MongoDB.
+// ⚠️ OPTIONAL: ADMIN REGISTER (use once, then remove)
 router.post("/register", async (req, res) => {
   try {
     const { email, password, name } = req.body;
@@ -32,24 +32,41 @@ router.post("/register", async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const admin = new Admin({ email, password: hashedPassword, name });
-    await admin.save();
 
-    res.json({ message: "Admin registered successfully" });
+    const admin = await Admin.create({
+      email,
+      password: hashedPassword,
+      name,
+    });
+
+    res.status(201).json({
+      message: "Admin registered successfully",
+      admin: {
+        id: admin._id,
+        email: admin.email,
+        name: admin.name,
+      },
+    });
   } catch (err) {
-    console.error("Error registering admin:", err);
+    console.error("Admin register error:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
 
-// ======================
-// 📋 APPLICATION MANAGEMENT
-// ======================
+/* ======================
+   📋 APPLICATION MANAGEMENT
+====================== */
 
-// ✅ Fetch all job applications
-router.get("/applications", verifyToken, verifyAdmin, getAllApplications);
+// ✅ GET all applications
+router.get("/applications", verifyAdmin, getAllApplications);
 
-// ✅ Update an application's reply or status
-router.put("/applications/:id", verifyToken, verifyAdmin, updateApplication);
+// ✅ GET single application
+router.get("/applications/:id", verifyAdmin, getApplicationById);
+
+// ✅ UPDATE application (reply / status)
+router.put("/applications/:id", verifyAdmin, updateApplication);
+
+// ✅ RESEND application email
+router.patch("/applications/resend/:id", verifyAdmin, resendEmail);
 
 export default router;
