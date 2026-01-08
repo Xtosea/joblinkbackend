@@ -9,7 +9,7 @@ import {
   resendEmail,
 } from "../controllers/adminController.js";
 
-import { verifyAdmin } from "../middleware/adminAuth.js";
+import { verifyAdmin } from "../middleware/auth.js";
 import Admin from "../models/adminModel.js";
 
 const router = express.Router();
