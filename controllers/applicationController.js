@@ -1,6 +1,6 @@
 import Application from "../models/Application.js";
 import crypto from "crypto";
-import { sendApplicationEmail } from "../config/mailer.js";
+import { sendApplicationEmail } from "../utils/mailer.js";
 
 // ================= CREATE APPLICATION =================
 export const createApplication = async (req, res) => {
