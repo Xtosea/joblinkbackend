@@ -1,6 +1,6 @@
 import Application from "../models/Application.js";
 import crypto from "crypto";
-import nodemailer from "nodemailer";
+import { sendApplicationEmail } from "../config/mailer.js";
 
 // ================= EMAIL SETUP =================
 const transporter = nodemailer.createTransport({
@@ -12,11 +12,10 @@ const transporter = nodemailer.createTransport({
 });
 
 // ================= CREATE APPLICATION =================
-export const createApplication = async (req, res) => {
+export const createApplication = async (req, export const createApplication = async (req, res) => {
   try {
     const { fullname, email, mobile, jobType, jobPosition } = req.body;
 
-    // Generate unique access token for this applicant
     const accessToken = crypto.randomBytes(32).toString("hex");
 
     const application = await Application.create({
@@ -28,24 +27,22 @@ export const createApplication = async (req, res) => {
       accessToken,
     });
 
-    // Link to upload proof or CV
     const accessLink = `${process.env.FRONTEND_URL}/upload/${accessToken}`;
 
-    // Send auto-response email to applicant
-    await transporter.sendMail({
-      to: email,
-      subject: "Application Received",
-      html: `
-        <h3>Hello ${fullname},</h3>
-        <p>Your application was received successfully.</p>
-        <p>Please upload your documents (proof of payment / CV) using the link below:</p>
-        <a href="${accessLink}">${accessLink}</a>
-      `,
-    });
+    // ✅ Send email WITHOUT breaking app if it fails
+    try {
+      await sendApplicationEmail({
+        to: email,
+        fullname,
+        link: accessLink,
+      });
+    } catch (mailErr) {
+      console.error("❌ Email failed:", mailErr.message);
+    }
 
     res.status(201).json({
       message: "Application submitted successfully",
-      accessToken, // return token so frontend can store / use it
+      accessToken,
     });
   } catch (err) {
     console.error("Create application error:", err);
