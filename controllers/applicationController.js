@@ -2,17 +2,8 @@ import Application from "../models/Application.js";
 import crypto from "crypto";
 import { sendApplicationEmail } from "../config/mailer.js";
 
-// ================= EMAIL SETUP =================
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
-
 // ================= CREATE APPLICATION =================
-export const createApplication = async (req, export const createApplication = async (req, res) => {
+export const createApplication = async (req, res) => {
   try {
     const { fullname, email, mobile, jobType, jobPosition } = req.body;
 
@@ -29,7 +20,7 @@ export const createApplication = async (req, export const createApplication = as
 
     const accessLink = `${process.env.FRONTEND_URL}/upload/${accessToken}`;
 
-    // ✅ Send email WITHOUT breaking app if it fails
+    // ✅ Send email safely (won’t crash app)
     try {
       await sendApplicationEmail({
         to: email,
