@@ -6,14 +6,17 @@ export const sendApplicationEmail = async ({ to, fullname, link }) => {
   return resend.emails.send({
     from: "JobLink Nigeria <onboarding@resend.dev>",
     to,
-    subject: "Your Job Application – Next Steps",
+    subject: "Application Received – Upload Proof",
     html: `
-      <h2>Hello ${fullname},</h2>
-      <p>Your application was received successfully.</p>
-      <p>Please click the link below to upload your documents:</p>
-      <a href="${link}">${link}</a>
-      <br/><br/>
-      <p>JobLink Nigeria</p>
+      <p>Hello <b>${fullname}</b>,</p>
+      <p>Your application has been received.</p>
+      <p>
+        Click below to upload your proof and CV:
+      </p>
+      <p>
+        <a href="${link}">${link}</a>
+      </p>
+      <p>This link expires in 48 hours.</p>
     `,
   });
 };
