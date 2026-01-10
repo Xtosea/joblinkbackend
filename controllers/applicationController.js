@@ -23,14 +23,15 @@ export const createApplication = async (req, res) => {
     const accessLink = `${process.env.FRONTEND_URL}/upload/${emailToken}`;
 
     try {
-      await sendApplicationEmail({
-        to: email,
-        fullname,
-        link: accessLink,
-      });
-    } catch (mailErr) {
-      console.error("❌ Email failed:", mailErr.message);
-    }
+  await sendApplicationEmail({
+    to: email,
+    fullname,
+    link: accessLink,
+  });
+  console.log("✅ Email sent to:", email);
+} catch (mailErr) {
+  console.error("❌ Email failed:", mailErr);
+}
 
     res.status(201).json({
       message: "Application submitted successfully",
