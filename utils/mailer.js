@@ -17,13 +17,11 @@ export const sendApplicationEmail = async ({ to, fullname, link }) => {
     subject: "Application Received – Upload Proof",
     html: `
       <p>Hello <b>${fullname}</b>,</p>
-      <p>Your application has been received successfully.</p>
-      <p>
-        👉 <b>Please click the link below to upload your proof of payment and CV:</b>
-      </p>
+      <p>Your application was received successfully.</p>
+      <p><b>Please upload your documents using the link below:</b></p>
       <p><a href="${link}" target="_blank">${link}</a></p>
-      <p><b>Important:</b> This link expires in <b>48 hours</b>.</p>
-      <p>Regards,<br/><b>JobLink Admin</b></p>
+      <p>This link expires in 48 hours.</p>
+      <p>Regards,<br/>JobLink Admin</p>
     `,
   });
 };
