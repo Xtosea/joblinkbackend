@@ -4,19 +4,16 @@ import {
   createApplication,
   getByToken,
   uploadFiles,
+  getAllApplications,
 } from "../controllers/applicationController.js";
 
 const router = express.Router();
 const upload = multer({ dest: "uploads/" });
 
-// ================== APPLICANT ROUTES ==================
-// Submit application
+// ================= APPLICANT ROUTES =================
 router.post("/", createApplication);
-
-// Get application info by token (for upload page / history)
 router.get("/access/:token", getByToken);
 
-// Upload proof / resume files
 router.patch(
   "/upload/:token",
   upload.fields([
@@ -25,5 +22,8 @@ router.patch(
   ]),
   uploadFiles
 );
+
+// ================= ADMIN ROUTE =================
+router.get("/", getAllApplications);
 
 export default router;
