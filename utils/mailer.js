@@ -13,22 +13,34 @@ export const sendApplicationNotification = async ({
   try {
     const emailData = {
       sender: {
-        email: "no-reply@brevo.com", // must be a valid sender
+        email: "no-reply@brevo.com", // ✅ SAFE DEFAULT SENDER
         name: "JobLink Nigeria",
       },
       to: [
         {
-          email: email,      // 👈 THIS FIXES YOUR ERROR
+          email: email,
           name: fullname,
         },
       ],
       subject: "Complete Your Job Application",
       htmlContent: `
         <p>Hello <strong>${fullname}</strong>,</p>
-        <p>Thank you for applying.</p>
+
+        <p>Thank you for applying on <strong>JobLink Nigeria</strong>.</p>
+
         <p>Please complete your application using the link below:</p>
-        <p><a href="${link}">${link}</a></p>
-        <p>This link expires in 24 hours.</p>
+
+        <p>
+          <a href="${link}" target="_blank">${link}</a>
+        </p>
+
+        <p><strong>Note:</strong> This link expires in 24 hours.</p>
+
+        <hr />
+
+        <p style="font-size:12px;color:#777;">
+          If you did not request this email, please ignore it.
+        </p>
       `,
     };
 
