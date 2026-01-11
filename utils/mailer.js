@@ -20,3 +20,5 @@ export const sendApplicationEmail = async ({ to, fullname, link }) => {
     `,
   });
 };
+
+console.log("RESEND_API_KEY =", process.env.RESEND_API_KEY);
