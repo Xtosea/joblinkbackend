@@ -13,7 +13,7 @@ export const sendApplicationNotification = async ({
   try {
     const emailData = {
       sender: {
-        email: "no-reply@joblinknigeria.com", // must be a valid sender
+        email: "no-reply@brevo.com", // must be a valid sender
         name: "JobLink Nigeria",
       },
       to: [
