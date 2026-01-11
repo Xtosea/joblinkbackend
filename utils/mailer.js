@@ -1,23 +1,26 @@
 import { Resend } from "resend";
 
-console.log("RESEND_API_KEY =", process.env.RESEND_API_KEY);
-
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const sendApplicationEmail = async ({ to, fullname, link }) => {
-  return await resend.emails.send({
-    from: "JobLink <onboarding@resend.dev>",
+  const { data, error } = await resend.emails.send({
+    from: "JobLink <no-reply@joblinknigeria.resend.app>",
     to,
-    subject: "Your Job Application – Next Steps",
+    subject: "Your JobLink Application Was Received",
     html: `
-      <h2>Hello ${fullname},</h2>
-      <p>Your application was submitted successfully.</p>
-      <p>Upload your documents here:</p>
+      <h3>Hello ${fullname},</h3>
+      <p>Your application has been received successfully.</p>
+      <p>Please upload your documents using the link below:</p>
       <a href="${link}">${link}</a>
-      <br/><br/>
-      <p>JobLink Team</p>
+      <br /><br />
+      <small>JobLink Team</small>
     `,
   });
-};
 
-console.log("RESEND_API_KEY =", process.env.RESEND_API_KEY);
+  if (error) {
+    console.error("❌ Resend error:", error);
+    throw error;
+  }
+
+  console.log("✅ Resend email sent:", data?.id);
+};
