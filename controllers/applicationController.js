@@ -1,30 +1,36 @@
 import Application from "../models/Application.js";
 import crypto from "crypto";
-import { sendApplicationEmail } from "../utils/mailer.js";
+import { sendApplicationNotification } from "../utils/mailer.js";
 
 // ================= CREATE APPLICATION =================
 export const createApplication = async (req, res) => {
   try {
     const { fullname, email, mobile, jobType, jobPosition } = req.body;
 
-    const accessToken = crypto.randomBytes(32).toString("hex");
+    // Generate a unique email token and set expiration (24 hours)
+    const emailToken = crypto.randomBytes(32).toString("hex");
+    const tokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
+
+    // Create the application document
     const application = await Application.create({
       fullname,
       email,
       mobile,
       jobType,
       jobPosition,
-      accessToken,
+      emailToken,
+      tokenExpiresAt,
     });
 
-    const accessLink = `${process.env.FRONTEND_URL}/upload/${accessToken}`;
+    // Create a link for the applicant to upload files
+    const accessLink = `${process.env.FRONTEND_URL}/upload/${emailToken}`;
 
-    // ✅ Send email + SMS
+    // ✅ Send email + SMS notification
     await sendApplicationNotification({ email, mobile, fullname, link: accessLink });
 
     res.status(201).json({
-      message: "Application submitted successfully",
-      accessToken,
+      message: "Application submitted successfully. Check your email and SMS for the next steps.",
+      emailToken,
     });
   } catch (err) {
     console.error("Create application error:", err);
