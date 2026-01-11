@@ -7,34 +7,24 @@ export const createApplication = async (req, res) => {
   try {
     const { fullname, email, mobile, jobType, jobPosition } = req.body;
 
-    const emailToken = crypto.randomBytes(32).toString("hex");
-    const tokenExpiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 hours
-
+    const accessToken = crypto.randomBytes(32).toString("hex");
     const application = await Application.create({
       fullname,
       email,
       mobile,
       jobType,
       jobPosition,
-      emailToken,
-      tokenExpiresAt,
+      accessToken,
     });
 
-    const accessLink = `${process.env.FRONTEND_URL}/upload/${emailToken}`;
+    const accessLink = `${process.env.FRONTEND_URL}/upload/${accessToken}`;
 
-    try {
-  await sendApplicationEmail({
-    to: email,
-    fullname,
-    link: accessLink,
-  });
-  console.log("✅ Email sent to:", email);
-} catch (mailErr) {
-  console.error("❌ Email failed:", mailErr);
-}
+    // ✅ Send email + SMS
+    await sendApplicationNotification({ email, mobile, fullname, link: accessLink });
 
     res.status(201).json({
       message: "Application submitted successfully",
+      accessToken,
     });
   } catch (err) {
     console.error("Create application error:", err);
