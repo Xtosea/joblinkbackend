@@ -1,22 +1,21 @@
 import { Resend } from "resend";
 
+console.log("RESEND_API_KEY =", process.env.RESEND_API_KEY);
+
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const sendApplicationEmail = async ({ to, fullname, link }) => {
-  return resend.emails.send({
-    from: "JobLink Nigeria <onboarding@resend.dev>",
+  return await resend.emails.send({
+    from: "JobLink <onboarding@resend.dev>",
     to,
-    subject: "Application Received – Upload Proof",
+    subject: "Your Job Application – Next Steps",
     html: `
-      <p>Hello <b>${fullname}</b>,</p>
-      <p>Your application has been received.</p>
-      <p>
-        Click below to upload your proof and CV:
-      </p>
-      <p>
-        <a href="${link}">${link}</a>
-      </p>
-      <p>This link expires in 48 hours.</p>
+      <h2>Hello ${fullname},</h2>
+      <p>Your application was submitted successfully.</p>
+      <p>Upload your documents here:</p>
+      <a href="${link}">${link}</a>
+      <br/><br/>
+      <p>JobLink Team</p>
     `,
   });
 };
