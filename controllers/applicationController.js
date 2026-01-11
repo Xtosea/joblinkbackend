@@ -97,3 +97,5 @@ export const getAllApplications = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch applications" });
   }
 };
+
+console.log("Sending email to:", email);
