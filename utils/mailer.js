@@ -17,9 +17,11 @@ export const sendApplicationEmail = async ({ to, fullname, link }) => {
     subject: "Your JobLink Application Was Received",
     html: `
       <h3>Hello ${fullname},</h3>
-      <p>Your application has been received.</p>
-      <p>Upload your documents:</p>
+      <p>Your application has been received successfully.</p>
+      <p>Please upload your documents using the link below:</p>
       <a href="${link}">${link}</a>
+      <br/><br/>
+      <small>JobLink Team</small>
     `,
   });
 
