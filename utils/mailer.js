@@ -1,28 +1,33 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
 export const sendApplicationEmail = async ({ to, fullname, link }) => {
   try {
-    const { data } = await resend.emails.send({
-      from: "JobLink <onboarding@resend.dev>", // ✅ VERIFIED DOMAIN
+    const info = await transporter.sendMail({
+      from: `JobLink <${process.env.EMAIL_USER}>`,
       to,
       subject: "Your JobLink Application Was Received",
       html: `
         <h3>Hello ${fullname},</h3>
         <p>Your application has been received successfully.</p>
         <p>Please upload your documents using the link below:</p>
-        <p>
-          <a href="${link}" target="_blank">${link}</a>
-        </p>
-        <br />
-        <small>— JobLink Team</small>
+        <a href="${link}">${link}</a>
+        <br /><br />
+        <small>JobLink Team</small>
       `,
     });
 
-    console.log("✅ Email sent successfully:", data?.id);
+    console.log("✅ SMTP Email sent:", info.messageId);
+    return info;
   } catch (error) {
-    console.error("❌ Email sending failed:", error);
+    console.error("❌ SMTP Email failed:", error.message);
     throw error;
   }
 };
