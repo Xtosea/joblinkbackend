@@ -1,6 +1,6 @@
 import Application from "../models/Application.js";
 import crypto from "crypto";
-import { sendApplicationNotification } from "../utils/mailer.js";
+import { sendApplicationEmail } from "../utils/mailer.js"; // email only
 
 // ================= CREATE APPLICATION =================
 export const createApplication = async (req, res) => {
@@ -15,7 +15,7 @@ export const createApplication = async (req, res) => {
     const application = await Application.create({
       fullname,
       email,
-      mobile,
+      mobile,          // keep mobile in the database
       jobType,
       jobPosition,
       emailToken,
@@ -25,11 +25,11 @@ export const createApplication = async (req, res) => {
     // Create a link for the applicant to upload files
     const accessLink = `${process.env.FRONTEND_URL}/upload/${emailToken}`;
 
-    // ✅ Send email + SMS notification
-    await sendApplicationNotification({ email, mobile, fullname, link: accessLink });
+    // ✅ Send email only (no SMS)
+    await sendApplicationEmail({ email, fullname, link: accessLink });
 
     res.status(201).json({
-      message: "Application submitted successfully. Check your email and SMS for the next steps.",
+      message: "Application submitted successfully. Check your email for the next steps.",
       emailToken,
     });
   } catch (err) {
