@@ -1,11 +1,16 @@
 import nodemailer from "nodemailer";
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 465,          // 👈 VERY IMPORTANT
+  secure: true,       // 👈 MUST be true for 465
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  connectionTimeout: 10000, // 10 seconds
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
 });
 
 export const sendApplicationEmail = async ({ to, fullname, link }) => {
@@ -27,7 +32,7 @@ export const sendApplicationEmail = async ({ to, fullname, link }) => {
     console.log("✅ SMTP Email sent:", info.messageId);
     return info;
   } catch (error) {
-    console.error("❌ SMTP Email failed:", error.message);
+    console.error("❌ SMTP Email failed:", error);
     throw error;
   }
 };
