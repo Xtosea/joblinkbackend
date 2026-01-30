@@ -20,6 +20,8 @@ const allowedOrigins = [
   "http://localhost:3000",
   process.env.FRONTEND_URL,
   "https://joblinknigeria.vercel.app",
+  "https://jobapplication.globelynks.com/",
+  
 ];
 
 app.use(
