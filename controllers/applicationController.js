@@ -1,6 +1,6 @@
 import Application from "../models/Application.js";
 import crypto from "crypto";
-import { emailQueue } from "../queues/emailQueue.js";
+
 
 // ================= CREATE APPLICATION =================
 export const createApplication = async (req, res) => {
