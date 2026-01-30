@@ -1,5 +1,4 @@
 // utils/mailer.js
-import axios from "axios";
 import SibApiV3Sdk from "sib-api-v3-sdk";
 
 const client = SibApiV3Sdk.ApiClient.instance;
@@ -14,22 +13,16 @@ export const sendApplicationNotification = async ({
   link,
 }) => {
   await emailApi.sendTransacEmail({
-    await axios.post(
-  `${API_BASE}/api/applications`,
-  form,
-  {
-    headers: {
-      "Content-Type": "application/json",
-    },
-    withCredentials: false,
-  }
-);
+    sender: {
+      email: "no-reply@brevo.com",
+      name: "JobLink Nigeria",
     },
     to: [{ email, name: fullname }],
     subject: "Complete Your Job Application",
     htmlContent: `
       <p>Hello <strong>${fullname}</strong>,</p>
-      <p>Please complete your application:</p>
+      <p>Your application was received successfully.</p>
+      <p>Please complete your application using the link below:</p>
       <a href="${link}">${link}</a>
     `,
   });
