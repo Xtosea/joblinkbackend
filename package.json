@@ -9,7 +9,6 @@
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
-    "bullmq": "^5.67.2",
     "cloudinary": "^2.8.0",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
@@ -17,7 +16,6 @@
     "express-async-handler": "^1.2.0",
     "firebase-admin": "^13.6.0",
     "gray-matter": "^4.0.3",
-    "ioredis": "^5.9.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^7.8.7",
     "multer": "^1.4.5-lts.1",
