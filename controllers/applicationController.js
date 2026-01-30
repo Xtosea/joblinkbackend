@@ -1,35 +1,56 @@
 import Application from "../models/Application.js";
 import crypto from "crypto";
-import { sendApplicationEmail } from "../utils/mailer.js"; // email only
+import { emailQueue } from "../queues/emailQueue.js";
 
 // ================= CREATE APPLICATION =================
 export const createApplication = async (req, res) => {
   try {
     const { fullname, email, mobile, jobType, jobPosition } = req.body;
 
-    // Generate a unique email token and set expiration (24 hours)
+    // Generate email token (24h expiry)
     const emailToken = crypto.randomBytes(32).toString("hex");
-    const tokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
+    const tokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-    // Create the application document
+    // Save application
     const application = await Application.create({
       fullname,
       email,
-      mobile,          // keep mobile in the database
+      mobile,
       jobType,
       jobPosition,
       emailToken,
       tokenExpiresAt,
     });
 
-    // Create a link for the applicant to upload files
+    // Upload link
     const accessLink = `${process.env.FRONTEND_URL}/upload/${emailToken}`;
 
-    // ✅ Send email only (no SMS)
-    await sendApplicationEmail({ email, fullname, link: accessLink });
+    // ================= QUEUE EMAILS =================
+
+    // Applicant email
+    await emailQueue.add("user-email", {
+      type: "USER_EMAIL",
+      payload: {
+        email,
+        fullname,
+        link: accessLink,
+      },
+    });
+
+    // Admin notification email
+    await emailQueue.add("admin-email", {
+      type: "ADMIN_EMAIL",
+      payload: {
+        fullname,
+        email,
+        jobType,
+        jobPosition,
+      },
+    });
 
     res.status(201).json({
-      message: "Application submitted successfully. Check your email for the next steps.",
+      message:
+        "Application submitted successfully. Check your email for the next steps.",
       emailToken,
     });
   } catch (err) {
@@ -64,9 +85,7 @@ export const uploadFiles = async (req, res) => {
   try {
     const { token } = req.params;
 
-    const application = await Application.findOne({
-      emailToken: token,
-    });
+    const application = await Application.findOne({ emailToken: token });
 
     if (!application) {
       return res.status(404).json({ message: "Invalid token" });
@@ -81,6 +100,7 @@ export const uploadFiles = async (req, res) => {
     }
 
     await application.save();
+
     res.json({ message: "Files uploaded successfully" });
   } catch (err) {
     console.error("Upload error:", err);
@@ -97,5 +117,3 @@ export const getAllApplications = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch applications" });
   }
 };
-
-console.log("Sending email to:", email);
