@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { emailQueue } from "../queues/emailQueue.js";
 
 // ================= CREATE APPLICATION =================
+// ================= CREATE APPLICATION =================
 export const createApplication = async (req, res) => {
   try {
     const { fullname, email, mobile, jobType, jobPosition } = req.body;
@@ -26,28 +27,18 @@ export const createApplication = async (req, res) => {
     const accessLink = `${process.env.FRONTEND_URL}/upload/${emailToken}`;
 
     // ================= QUEUE EMAILS =================
-
-    // Applicant email
-    await emailQueue.add("user-email", {
+    // Queue jobs, but do NOT await them — respond immediately
+    emailQueue.add("user-email", {
       type: "USER_EMAIL",
-      payload: {
-        email,
-        fullname,
-        link: accessLink,
-      },
+      payload: { email, fullname, link: accessLink },
     });
 
-    // Admin notification email
-    await emailQueue.add("admin-email", {
+    emailQueue.add("admin-email", {
       type: "ADMIN_EMAIL",
-      payload: {
-        fullname,
-        email,
-        jobType,
-        jobPosition,
-      },
+      payload: { fullname, email, jobType, jobPosition },
     });
 
+    // ✅ Respond immediately
     res.status(201).json({
       message:
         "Application submitted successfully. Check your email for the next steps.",
@@ -58,7 +49,6 @@ export const createApplication = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
 // ================= GET APPLICATION BY TOKEN =================
 export const getByToken = async (req, res) => {
   try {
