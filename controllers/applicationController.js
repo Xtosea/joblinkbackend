@@ -3,7 +3,6 @@ import crypto from "crypto";
 import { emailQueue } from "../queues/emailQueue.js";
 
 // ================= CREATE APPLICATION =================
-// ================= CREATE APPLICATION =================
 export const createApplication = async (req, res) => {
   try {
     const { fullname, email, mobile, jobType, jobPosition } = req.body;
@@ -23,25 +22,34 @@ export const createApplication = async (req, res) => {
       tokenExpiresAt,
     });
 
-    // Upload link
+    // Upload link for applicant
     const accessLink = `${process.env.FRONTEND_URL}/upload/${emailToken}`;
 
-    // ================= QUEUE EMAILS =================
-    // Queue jobs, but do NOT await them — respond immediately
-    emailQueue.add("user-email", {
-      type: "USER_EMAIL",
-      payload: { email, fullname, link: accessLink },
-    });
+    // ================= SEND EMAILS IMMEDIATELY =================
+    try {
+      // Applicant email
+      await sendApplicationNotification({
+        email,
+        fullname,
+        link: accessLink,
+      });
 
-    emailQueue.add("admin-email", {
-      type: "ADMIN_EMAIL",
-      payload: { fullname, email, jobType, jobPosition },
-    });
+      // Admin notification
+      await sendAdminNotification({
+        fullname,
+        email,
+        jobType,
+        jobPosition,
+      });
+    } catch (emailErr) {
+      console.error("Email sending failed:", emailErr);
+      // Optional: still respond success to frontend
+    }
 
-    // ✅ Respond immediately
+    // ✅ Respond immediately to frontend
     res.status(201).json({
       message:
-        "Application submitted successfully. Check your email for the next steps.",
+        "Application submitted successfully. Check your email for next steps.",
       emailToken,
     });
   } catch (err) {
@@ -49,6 +57,7 @@ export const createApplication = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
 // ================= GET APPLICATION BY TOKEN =================
 export const getByToken = async (req, res) => {
   try {
