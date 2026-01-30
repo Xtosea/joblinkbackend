@@ -1,18 +1,18 @@
 import Application from "../models/Application.js";
 import crypto from "crypto";
+import {
+  sendApplicationNotification,
+  sendAdminNotification,
+} from "../utils/mailer.js";
 
-
-// ================= CREATE APPLICATION =================
 export const createApplication = async (req, res) => {
   try {
     const { fullname, email, mobile, jobType, jobPosition } = req.body;
 
-    // Generate email token (24h expiry)
     const emailToken = crypto.randomBytes(32).toString("hex");
     const tokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-    // Save application
-    const application = await Application.create({
+    await Application.create({
       fullname,
       email,
       mobile,
@@ -22,19 +22,16 @@ export const createApplication = async (req, res) => {
       tokenExpiresAt,
     });
 
-    // Upload link for applicant
     const accessLink = `${process.env.FRONTEND_URL}/upload/${emailToken}`;
 
-    // ================= SEND EMAILS IMMEDIATELY =================
+    // 🔥 Send emails immediately (no Redis, no queue)
     try {
-      // Applicant email
       await sendApplicationNotification({
         email,
         fullname,
         link: accessLink,
       });
 
-      // Admin notification
       await sendAdminNotification({
         fullname,
         email,
@@ -43,18 +40,15 @@ export const createApplication = async (req, res) => {
       });
     } catch (emailErr) {
       console.error("Email sending failed:", emailErr);
-      // Optional: still respond success to frontend
     }
 
-    // ✅ Respond immediately to frontend
-    res.status(201).json({
+    return res.status(201).json({
       message:
         "Application submitted successfully. Check your email for next steps.",
-      emailToken,
     });
   } catch (err) {
     console.error("Create application error:", err);
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
