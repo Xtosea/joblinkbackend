@@ -13,9 +13,16 @@ export const sendApplicationNotification = async ({
   link,
 }) => {
   await emailApi.sendTransacEmail({
-    sender: {
-      email: "no-reply@brevo.com",
-      name: "JobLink Nigeria",
+    await axios.post(
+  `${API_BASE}/api/applications`,
+  form,
+  {
+    headers: {
+      "Content-Type": "application/json",
+    },
+    withCredentials: false,
+  }
+);
     },
     to: [{ email, name: fullname }],
     subject: "Complete Your Job Application",
