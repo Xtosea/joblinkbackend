@@ -14,7 +14,7 @@ export const sendApplicationNotification = async ({
 }) => {
   await emailApi.sendTransacEmail({
     sender: {
-      email: "no-reply@brevo.com",
+      email: "joblinkhelpdesk@gmail.com",
       name: "JobLink Nigeria",
     },
     to: [{ email, name: fullname }],
