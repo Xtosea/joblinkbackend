@@ -16,22 +16,24 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const allowedOrigins = [
-  "http://localhost:3000",
-  process.env.FRONTEND_URL,
-  "https://joblinknigeria.vercel.app",
-  "https://jobapplication.globelynks.com",
-];
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",")
+  : [];
 
 app.use(cors({
-  origin: [
-    "http://localhost:3000",
-    "https://joblinknigeria.vercel.app",
-    "https://jobapplication.globelynks.com",
-  ],
+  origin: (origin, callback) => {
+    // Allow server-to-server / Postman / curl
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error(`CORS blocked: ${origin}`));
+  },
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: false, // IMPORTANT: you are NOT using cookies
+  credentials: false, // no cookies/JWT in headers only
 }));
 
 // 👇 THIS IS CRITICAL
