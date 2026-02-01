@@ -17,24 +17,30 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ================== Dynamic CORS Setup ==================
+// ================== Allowed Origins ==================
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
   : [];
 
 console.log("✅ Allowed CORS origins:", allowedOrigins);
 
+// ================== Dynamic CORS Setup ==================
 const corsOptions = {
   origin: (origin, callback) => {
     // Allow requests with no origin (Postman, server-to-server)
     if (!origin) return callback(null, true);
 
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    } else {
-      console.warn("❌ Blocked CORS origin:", origin);
-      return callback(new Error("Not allowed by CORS"));
-    }
+    // Allow exact matches from whitelist
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+
+    // Allow all Vercel preview URLs
+    if (origin.endsWith(".vercel.app")) return callback(null, true);
+
+    // Allow all subdomains of globelynks.com
+    if (/^https?:\/\/.*\.globelynks\.com$/.test(origin)) return callback(null, true);
+
+    console.warn("❌ Blocked CORS origin:", origin);
+    return callback(new Error("Not allowed by CORS"));
   },
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
@@ -58,7 +64,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.get("/test", (req, res) => {
   res.json({
     message: "Backend connected successfully!",
-    origin: req.headers.origin, // debug CORS
+    originReceived: req.headers.origin, // debug
   });
 });
 
