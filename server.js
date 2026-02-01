@@ -1,4 +1,3 @@
-// server.js
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -19,7 +18,7 @@ const __dirname = path.dirname(__filename);
 
 // ================== CORS ==================
 const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",")
+  ? process.env.ALLOWED_ORIGINS.map(origin => origin.replace(/\/$/, "")) // normalize
   : [];
 
 app.use(
@@ -27,7 +26,12 @@ app.use(
     origin: function (origin, callback) {
       // Allow requests with no origin (Postman, curl, server-to-server)
       if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) return callback(null, true);
+
+      // Normalize incoming origin (remove trailing slash)
+      const normalizedOrigin = origin.replace(/\/$/, "");
+
+      if (allowedOrigins.includes(normalizedOrigin)) return callback(null, true);
+
       console.log("Blocked CORS origin:", origin);
       return callback(new Error("Not allowed by CORS"));
     },
