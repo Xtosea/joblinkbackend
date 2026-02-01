@@ -5,12 +5,16 @@ import {
   sendAdminNotification,
 } from "../utils/mailer.js";
 
+// ================= CREATE APPLICATION =================
 export const createApplication = async (req, res) => {
   try {
     const { fullname, email, mobile, jobType, jobPosition } = req.body;
 
     const emailToken = crypto.randomBytes(32).toString("hex");
-    const tokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    // ✅ Token expires in 7 days
+    const tokenExpiresAt = new Date();
+    tokenExpiresAt.setDate(tokenExpiresAt.getDate() + 7);
 
     await Application.create({
       fullname,
@@ -24,7 +28,7 @@ export const createApplication = async (req, res) => {
 
     const accessLink = `${process.env.FRONTEND_URL}/upload/${emailToken}`;
 
-    // 🔥 Send emails immediately (no Redis, no queue)
+    // 🔥 Send emails immediately
     try {
       await sendApplicationNotification({
         email,
@@ -57,13 +61,14 @@ export const getByToken = async (req, res) => {
   try {
     const { token } = req.params;
 
-    const application = await Application.findOne({
-      emailToken: token,
-      tokenExpiresAt: { $gt: new Date() },
-    });
+    const application = await Application.findOne({ emailToken: token });
 
     if (!application) {
-      return res.status(404).json({ message: "Invalid or expired link" });
+      return res.status(404).json({ message: "Invalid link" });
+    }
+
+    if (application.tokenExpiresAt < new Date()) {
+      return res.status(400).json({ message: "Link expired" });
     }
 
     res.json(application);
@@ -84,6 +89,10 @@ export const uploadFiles = async (req, res) => {
       return res.status(404).json({ message: "Invalid token" });
     }
 
+    if (application.tokenExpiresAt < new Date()) {
+      return res.status(400).json({ message: "Link expired" });
+    }
+
     if (req.files?.proofFile) {
       application.proofFile = `/uploads/${req.files.proofFile[0].filename}`;
     }
@@ -91,6 +100,10 @@ export const uploadFiles = async (req, res) => {
     if (req.files?.resumeFile) {
       application.resumeFile = `/uploads/${req.files.resumeFile[0].filename}`;
     }
+
+    // ✅ Optional but recommended: invalidate token after upload
+    application.emailToken = null;
+    application.tokenExpiresAt = null;
 
     await application.save();
 
