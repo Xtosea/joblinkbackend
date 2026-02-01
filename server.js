@@ -17,34 +17,35 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ================== CORS Setup ==================
+// ================== Dynamic CORS Setup ==================
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
   : [];
 
 console.log("✅ Allowed CORS origins:", allowedOrigins);
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow server-to-server requests (like Postman or curl)
-      if (!origin) return callback(null, true);
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (Postman, server-to-server)
+    if (!origin) return callback(null, true);
 
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      } else {
-        console.warn("❌ Blocked CORS origin:", origin);
-        return callback(new Error("Not allowed by CORS"));
-      }
-    },
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true, // needed if you use cookies or auth headers
-  })
-);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      console.warn("❌ Blocked CORS origin:", origin);
+      return callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true, // needed if using cookies/auth headers
+};
 
-// Enable preflight for all routes
-app.options("*", cors());
+// Apply CORS globally
+app.use(cors(corsOptions));
+
+// Handle preflight requests
+app.options("*", cors(corsOptions));
 
 // ================== Middleware ==================
 app.use(express.json());
@@ -55,7 +56,10 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ================== Test Route ==================
 app.get("/test", (req, res) => {
-  res.json({ message: "Backend connected successfully!" });
+  res.json({
+    message: "Backend connected successfully!",
+    origin: req.headers.origin, // debug CORS
+  });
 });
 
 // ================== Routes ==================
