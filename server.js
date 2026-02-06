@@ -18,28 +18,37 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // ================== Allowed Origins ==================
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",").map(o => o.trim())
-  : [];
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "http://127.0.0.1:5173",
+  "http://127.0.0.1:3000",
+  "https://joblinks.globelynks.com",
+  "https://jobapplication.globelynks.com",
+  "https://joblinknigeria.vercel.app"
+];
 
 console.log("✅ Allowed CORS origins:", allowedOrigins);
 
 // ================== CORS Setup ==================
-app.use(cors({
+const corsOptions = {
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // Postman/server
+    if (!origin) return callback(null, true); // allow Postman / server requests
     if (allowedOrigins.includes(origin)) return callback(null, true);
-    if (/^https?:\/\/(.*\.)?globelynks\.com$/.test(origin)) return callback(null, true);
-    if (origin.endsWith(".vercel.app")) return callback(null, true);
+
+    console.warn("❌ Blocked CORS origin:", origin);
     return callback(new Error("Not allowed by CORS"));
   },
   methods: ["GET","POST","PUT","PATCH","DELETE","OPTIONS"],
   allowedHeaders: ["Content-Type","Authorization"],
-  credentials: false, // JWT in headers
-}));
+  credentials: false, // JWT in headers does not need cookies
+};
 
-// Handle preflight
-app.options("*", cors());
+// Apply CORS globally
+app.use(cors(corsOptions));
+
+// Handle preflight requests
+app.options("*", cors(corsOptions));
 
 // ================== Middleware ==================
 app.use(express.json());
