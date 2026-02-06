@@ -13,10 +13,10 @@ import {
 
 const router = express.Router();
 
-// ================= MULTER SETUP =================
-const upload = multer({ storage: multer.memoryStorage() });
+// ================= MULTER =================
+const memoryUpload = multer({ storage: multer.memoryStorage() });
 
-// ================= LOCAL MULTER =================
+// ================= LOCAL UPLOAD =================
 const uploadDir = path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
 
@@ -26,17 +26,17 @@ const localUpload = multer({ dest: uploadDir });
 router.post("/", createApplication);
 router.get("/access/:token", getByToken);
 
-// Cloud upload
+// ✅ CLOUDINARY UPLOAD
 router.patch(
   "/upload/cloud/:token",
-  upload.fields([
+  memoryUpload.fields([
     { name: "proofFile", maxCount: 1 },
     { name: "resumeFile", maxCount: 1 },
   ]),
   uploadFilesToCloud
 );
 
-// Local upload
+// ✅ LOCAL UPLOAD
 router.patch(
   "/upload/local/:token",
   localUpload.fields([
@@ -46,21 +46,7 @@ router.patch(
   uploadFiles
 );
 
-// History (public)
-router.get("/history/:publicToken", async (req, res) => {
-  try {
-    const app = await Application.findOne({
-      publicToken: req.params.publicToken,
-    });
-
-    if (!app) return res.status(404).json({ message: "Not found" });
-    res.json(app);
-  } catch (err) {
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-// Admin
+// ================= ADMIN =================
 router.get("/", getAllApplications);
 
 export default router;
