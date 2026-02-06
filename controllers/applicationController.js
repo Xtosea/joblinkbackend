@@ -12,7 +12,7 @@ export const createApplication = async (req, res) => {
 
     const emailToken = crypto.randomBytes(32).toString("hex");
 
-    // ✅ Token expires in 7 days
+    // Token expires in 7 days
     const tokenExpiresAt = new Date();
     tokenExpiresAt.setDate(tokenExpiresAt.getDate() + 7);
 
@@ -28,7 +28,7 @@ export const createApplication = async (req, res) => {
 
     const accessLink = `${process.env.FRONTEND_URL}/upload/${emailToken}`;
 
-    // 🔥 Send emails immediately
+    // Send emails immediately
     try {
       await sendApplicationNotification({
         email,
@@ -63,13 +63,10 @@ export const getByToken = async (req, res) => {
 
     const application = await Application.findOne({ emailToken: token });
 
-    if (!application) {
-      return res.status(404).json({ message: "Invalid link" });
-    }
+    if (!application) return res.status(404).json({ message: "Invalid link" });
 
-    if (application.tokenExpiresAt < new Date()) {
+    if (application.tokenExpiresAt < new Date())
       return res.status(400).json({ message: "Link expired" });
-    }
 
     res.json(application);
   } catch (err) {
@@ -78,20 +75,16 @@ export const getByToken = async (req, res) => {
   }
 };
 
-// ================= UPLOAD FILES =================
+// ================= UPLOAD FILES → LOCAL =================
 export const uploadFiles = async (req, res) => {
   try {
     const { token } = req.params;
 
     const application = await Application.findOne({ emailToken: token });
+    if (!application) return res.status(404).json({ message: "Invalid token" });
 
-    if (!application) {
-      return res.status(404).json({ message: "Invalid token" });
-    }
-
-    if (application.tokenExpiresAt < new Date()) {
+    if (application.tokenExpiresAt < new Date())
       return res.status(400).json({ message: "Link expired" });
-    }
 
     if (req.files?.proofFile) {
       application.proofFile = `/uploads/${req.files.proofFile[0].filename}`;
@@ -101,15 +94,43 @@ export const uploadFiles = async (req, res) => {
       application.resumeFile = `/uploads/${req.files.resumeFile[0].filename}`;
     }
 
-    // ✅ Optional but recommended: invalidate token after upload
+    // Optional: invalidate token after upload
     application.emailToken = null;
     application.tokenExpiresAt = null;
 
     await application.save();
 
-    res.json({ message: "Files uploaded successfully" });
+    res.json({ message: "Files uploaded successfully", application });
   } catch (err) {
     console.error("Upload error:", err);
+    res.status(500).json({ message: "Upload failed" });
+  }
+};
+
+// ================= UPLOAD FILES → CLOUDINARY =================
+export const uploadFilesToCloud = async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    const application = await Application.findOne({ emailToken: token });
+    if (!application) return res.status(404).json({ message: "Invalid token" });
+
+    if (req.files?.proofFile) {
+      application.proofFile = req.files.proofFile[0].path; // Cloudinary URL
+    }
+
+    if (req.files?.resumeFile) {
+      application.resumeFile = req.files.resumeFile[0].path; // Cloudinary URL
+    }
+
+    // Invalidate token after upload
+    application.emailToken = null;
+    application.tokenExpiresAt = null;
+
+    await application.save();
+    res.json({ message: "Files uploaded successfully", application });
+  } catch (err) {
+    console.error("Cloud upload error:", err);
     res.status(500).json({ message: "Upload failed" });
   }
 };
@@ -120,6 +141,7 @@ export const getAllApplications = async (req, res) => {
     const applications = await Application.find().sort({ createdAt: -1 });
     res.json(applications);
   } catch (err) {
+    console.error("Get all applications error:", err);
     res.status(500).json({ message: "Failed to fetch applications" });
   }
 };
