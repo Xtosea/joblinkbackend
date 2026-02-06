@@ -5,11 +5,13 @@ const applicationSchema = new mongoose.Schema(
     fullname: { type: String, required: true, trim: true },
     email: { type: String, required: true, trim: true },
     mobile: { type: String, required: true, trim: true },
+
     jobType: {
       type: String,
       enum: ["Full-time", "Part-time"],
       required: true,
     },
+
     jobPosition: { type: String, required: true, trim: true },
 
     proofFile: String,
@@ -22,9 +24,16 @@ const applicationSchema = new mongoose.Schema(
       default: "Pending",
     },
 
-    // 🔑 Email access token
-    emailToken: { type: String, required: true, unique: true },
-    tokenExpiresAt: { type: Date, required: true },
+    // 🔑 One-time upload token
+    emailToken: { type: String, unique: true },
+    tokenExpiresAt: Date,
+
+    // 🔓 Permanent history token
+    publicToken: {
+      type: String,
+      unique: true,
+      index: true,
+    },
   },
   { timestamps: true }
 );
