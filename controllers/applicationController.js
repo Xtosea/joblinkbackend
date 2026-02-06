@@ -6,7 +6,7 @@ import {
   sendAdminNotification,
 } from "../utils/mailer.js";
 
-// ================= CREATE APPLICATION =================
+/* ================= CREATE APPLICATION ================= */
 export const createApplication = async (req, res) => {
   try {
     const { fullname, email, mobile, jobType, jobPosition } = req.body;
@@ -33,39 +33,54 @@ export const createApplication = async (req, res) => {
       message: "Application submitted. Check your email.",
     });
   } catch (err) {
+    console.error("Create application error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-// ================= GET BY TOKEN =================
+/* ================= GET BY EMAIL TOKEN ================= */
 export const getByToken = async (req, res) => {
-  const app = await Application.findOne({ emailToken: req.params.token });
-  if (!app) return res.status(404).json({ message: "Invalid link" });
-  if (app.tokenExpiresAt < new Date())
-    return res.status(400).json({ message: "Link expired" });
+  try {
+    const app = await Application.findOne({ emailToken: req.params.token });
 
-  res.json(app);
+    if (!app) return res.status(404).json({ message: "Invalid link" });
+    if (app.tokenExpiresAt < new Date())
+      return res.status(400).json({ message: "Link expired" });
+
+    res.json(app);
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
 };
 
-// ================= LOCAL UPLOAD =================
+/* ================= LOCAL UPLOAD ================= */
 export const uploadFiles = async (req, res) => {
-  const app = await Application.findOne({ emailToken: req.params.token });
-  if (!app) return res.status(404).json({ message: "Invalid token" });
+  try {
+    const app = await Application.findOne({ emailToken: req.params.token });
+    if (!app) return res.status(404).json({ message: "Invalid token" });
 
-  if (req.files?.proofFile)
-    app.proofFile = `/uploads/${req.files.proofFile[0].filename}`;
+    if (req.files?.proofFile)
+      app.proofFile = `/uploads/${req.files.proofFile[0].filename}`;
 
-  if (req.files?.resumeFile)
-    app.resumeFile = `/uploads/${req.files.resumeFile[0].filename}`;
+    if (req.files?.resumeFile)
+      app.resumeFile = `/uploads/${req.files.resumeFile[0].filename}`;
 
-  app.emailToken = null;
-  app.tokenExpiresAt = null;
+    app.emailToken = null;
+    app.tokenExpiresAt = null;
 
-  await app.save();
-  res.json({ message: "Uploaded", application: app });
+    await app.save();
+
+    res.json({
+      message: "Uploaded",
+      publicToken: app._id,
+    });
+  } catch (err) {
+    console.error("Local upload error:", err);
+    res.status(500).json({ message: "Upload failed" });
+  }
 };
 
-// ================= CLOUDINARY UPLOAD =================
+/* ================= CLOUDINARY UPLOAD ================= */
 const uploadToCloudinary = (buffer, folder) =>
   new Promise((resolve, reject) => {
     cloudinary.uploader
@@ -76,34 +91,47 @@ const uploadToCloudinary = (buffer, folder) =>
   });
 
 export const uploadFilesToCloud = async (req, res) => {
-  const app = await Application.findOne({ emailToken: req.params.token });
-  if (!app) return res.status(404).json({ message: "Invalid token" });
+  try {
+    const app = await Application.findOne({ emailToken: req.params.token });
+    if (!app) return res.status(404).json({ message: "Invalid token" });
 
-  if (req.files?.proofFile) {
-    const proof = await uploadToCloudinary(
-      req.files.proofFile[0].buffer,
-      "joblink_uploads"
-    );
-    app.proofFile = proof.secure_url;
+    if (req.files?.proofFile) {
+      const proof = await uploadToCloudinary(
+        req.files.proofFile[0].buffer,
+        "joblink_uploads"
+      );
+      app.proofFile = proof.secure_url;
+    }
+
+    if (req.files?.resumeFile) {
+      const resume = await uploadToCloudinary(
+        req.files.resumeFile[0].buffer,
+        "joblink_uploads"
+      );
+      app.resumeFile = resume.secure_url;
+    }
+
+    app.emailToken = null;
+    app.tokenExpiresAt = null;
+
+    await app.save();
+
+    res.json({
+      message: "Uploaded",
+      publicToken: app._id,
+    });
+  } catch (err) {
+    console.error("Cloud upload error:", err);
+    res.status(500).json({ message: "Upload failed" });
   }
-
-  if (req.files?.resumeFile) {
-    const resume = await uploadToCloudinary(
-      req.files.resumeFile[0].buffer,
-      "joblink_uploads"
-    );
-    app.resumeFile = resume.secure_url;
-  }
-
-  app.emailToken = null;
-  app.tokenExpiresAt = null;
-
-  await app.save();
-  res.json({ message: "Uploaded", application: app });
 };
 
-// ================= ADMIN =================
+/* ================= ADMIN ================= */
 export const getAllApplications = async (req, res) => {
-  const apps = await Application.find().sort({ createdAt: -1 });
-  res.json(apps);
+  try {
+    const apps = await Application.find().sort({ createdAt: -1 });
+    res.json(apps);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch applications" });
+  }
 };
