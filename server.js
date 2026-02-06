@@ -24,33 +24,31 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
 
 console.log("✅ Allowed CORS origins:", allowedOrigins);
 
-// ================== Dynamic CORS Setup ==================
+// ================== CORS Setup ==================
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (Postman, server-to-server)
-    if (!origin) return callback(null, true);
+    if (!origin) return callback(null, true); // Allow Postman/server requests
 
-    // Allow exact matches from whitelist
     if (allowedOrigins.includes(origin)) return callback(null, true);
+
+    // Allow all subdomains of globelynks.com
+    if (/^https?:\/\/(.*\.)?globelynks\.com$/.test(origin)) return callback(null, true);
 
     // Allow all Vercel preview URLs
     if (origin.endsWith(".vercel.app")) return callback(null, true);
-
-    // Allow all subdomains of globelynks.com
-    if (/^https?:\/\/.*\.globelynks\.com$/.test(origin)) return callback(null, true);
 
     console.warn("❌ Blocked CORS origin:", origin);
     return callback(new Error("Not allowed by CORS"));
   },
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true, // needed if using cookies/auth headers
+  credentials: false, // JWT in headers does not require credentials
 };
 
 // Apply CORS globally
 app.use(cors(corsOptions));
 
-// Handle preflight requests
+// Handle preflight OPTIONS requests
 app.options("*", cors(corsOptions));
 
 // ================== Middleware ==================
@@ -64,7 +62,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.get("/test", (req, res) => {
   res.json({
     message: "Backend connected successfully!",
-    originReceived: req.headers.origin, // debug
+    originReceived: req.headers.origin,
   });
 });
 
