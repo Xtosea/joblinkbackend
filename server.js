@@ -19,37 +19,27 @@ const __dirname = path.dirname(__filename);
 
 // ================== Allowed Origins ==================
 const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
+  ? process.env.ALLOWED_ORIGINS.split(",").map(o => o.trim())
   : [];
 
 console.log("✅ Allowed CORS origins:", allowedOrigins);
 
 // ================== CORS Setup ==================
-const corsOptions = {
+app.use(cors({
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // Allow Postman/server requests
-
+    if (!origin) return callback(null, true); // Postman/server
     if (allowedOrigins.includes(origin)) return callback(null, true);
-
-    // Allow all subdomains of globelynks.com
     if (/^https?:\/\/(.*\.)?globelynks\.com$/.test(origin)) return callback(null, true);
-
-    // Allow all Vercel preview URLs
     if (origin.endsWith(".vercel.app")) return callback(null, true);
-
-    console.warn("❌ Blocked CORS origin:", origin);
     return callback(new Error("Not allowed by CORS"));
   },
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: false, // JWT in headers does not require credentials
-};
+  methods: ["GET","POST","PUT","PATCH","DELETE","OPTIONS"],
+  allowedHeaders: ["Content-Type","Authorization"],
+  credentials: false, // JWT in headers
+}));
 
-// Apply CORS globally
-app.use(cors(corsOptions));
-
-// Handle preflight OPTIONS requests
-app.options("*", cors(corsOptions));
+// Handle preflight
+app.options("*", cors());
 
 // ================== Middleware ==================
 app.use(express.json());
@@ -58,27 +48,16 @@ app.use(express.urlencoded({ extended: true }));
 // ================== Static Files ==================
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// ================== Test Route ==================
-app.get("/test", (req, res) => {
-  res.json({
-    message: "Backend connected successfully!",
-    originReceived: req.headers.origin,
-  });
-});
-
 // ================== Routes ==================
 app.use("/api/auth", authRoutes);
 app.use("/api/applications", applicationRoutes);
 app.use("/api/admin", adminRoutes);
 
 // ================== MongoDB Connection ==================
-mongoose
-  .connect(process.env.MONGO_URI)
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB connected"))
-  .catch((err) => console.error("❌ MongoDB connection error:", err));
+  .catch(err => console.error("❌ MongoDB connection error:", err));
 
 // ================== Start Server ==================
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
