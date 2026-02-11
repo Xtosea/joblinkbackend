@@ -27,14 +27,7 @@ router.post("/", createApplication);
 router.get("/access/:token", getByToken);
 
 // ✅ CLOUDINARY UPLOAD
-router.post(
-  "/upload/cloud/:token",
-  memoryUpload.fields([
-    { name: "proofFile", maxCount: 1 },
-    { name: "resumeFile", maxCount: 1 },
-  ]),
-  uploadFilesToCloud
-);
+router.post("/upload/cloud/:token", uploadCloudUrls);
 
 // ✅ LOCAL UPLOAD
 router.post(
