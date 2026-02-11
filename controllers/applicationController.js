@@ -81,51 +81,30 @@ export const uploadFiles = async (req, res) => {
 };
 
 /* ================= CLOUDINARY UPLOAD ================= */
-const uploadToCloudinary = (buffer, folder) =>
-  new Promise((resolve, reject) => {
-    cloudinary.uploader
-      .upload_stream(
-        {
-          folder,
-          resource_type: "raw", // ✅ IMPORTANT
-        },
-        (err, result) => (err ? reject(err) : resolve(result))
-      )
-      .end(buffer);
-  });
-
-export const uploadFilesToCloud = async (req, res) => {
+export const uploadCloudUrls = async (req, res) => {
   try {
+    const { proofUrl, resumeUrl } = req.body;
+
+    if (!proofUrl || !resumeUrl) {
+      return res.status(400).json({ message: "Missing file URLs" });
+    }
+
     const app = await Application.findOne({ emailToken: req.params.token });
     if (!app) return res.status(404).json({ message: "Invalid token" });
 
-    if (!req.files?.proofFile || !req.files?.resumeFile) {
-      return res.status(400).json({ message: "Both files are required" });
-    }
-
-    const proof = await uploadToCloudinary(
-      req.files.proofFile[0].buffer,
-      "joblink_uploads"
-    );
-
-    const resume = await uploadToCloudinary(
-      req.files.resumeFile[0].buffer,
-      "joblink_uploads"
-    );
-
-    app.proofFile = proof.secure_url;
-    app.resumeFile = resume.secure_url;
+    app.proofFile = proofUrl;
+    app.resumeFile = resumeUrl;
     app.emailToken = null;
     app.tokenExpiresAt = null;
 
     await app.save();
 
     res.json({
-      message: "Uploaded successfully",
+      message: "Files saved successfully",
       publicToken: app._id,
     });
   } catch (err) {
-    console.error("Cloud upload error:", err);
+    console.error("Save URLs error:", err);
     res.status(500).json({ message: "Upload failed" });
   }
 };
