@@ -1,6 +1,5 @@
 import Application from "../models/Application.js";
 import crypto from "crypto";
-import cloudinary from "../utils/cloudinary.js";
 import {
   sendApplicationNotification,
   sendAdminNotification,
@@ -53,34 +52,7 @@ export const getByToken = async (req, res) => {
   }
 };
 
-/* ================= LOCAL UPLOAD ================= */
-export const uploadFiles = async (req, res) => {
-  try {
-    const app = await Application.findOne({ emailToken: req.params.token });
-    if (!app) return res.status(404).json({ message: "Invalid token" });
-
-    if (req.files?.proofFile)
-      app.proofFile = `/uploads/${req.files.proofFile[0].filename}`;
-
-    if (req.files?.resumeFile)
-      app.resumeFile = `/uploads/${req.files.resumeFile[0].filename}`;
-
-    app.emailToken = null;
-    app.tokenExpiresAt = null;
-
-    await app.save();
-
-    res.json({
-      message: "Uploaded",
-      publicToken: app._id,
-    });
-  } catch (err) {
-    console.error("Local upload error:", err);
-    res.status(500).json({ message: "Upload failed" });
-  }
-};
-
-/* ================= CLOUDINARY UPLOAD ================= */
+/* ================= SAVE CLOUDINARY URLS ================= */
 export const uploadCloudUrls = async (req, res) => {
   try {
     const { proofUrl, resumeUrl } = req.body;
