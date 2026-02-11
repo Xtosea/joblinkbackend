@@ -27,7 +27,7 @@ router.post("/", createApplication);
 router.get("/access/:token", getByToken);
 
 // ✅ CLOUDINARY UPLOAD
-router.patch(
+router.post(
   "/upload/cloud/:token",
   memoryUpload.fields([
     { name: "proofFile", maxCount: 1 },
@@ -37,7 +37,7 @@ router.patch(
 );
 
 // ✅ LOCAL UPLOAD
-router.patch(
+router.post(
   "/upload/local/:token",
   localUpload.fields([
     { name: "proofFile", maxCount: 1 },
