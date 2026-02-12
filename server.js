@@ -25,7 +25,7 @@ const allowedOrigins = [
   "http://127.0.0.1:3000",
   "https://joblinks.globelynks.com",
   "https://jobapplication.globelynks.com",
-  "https://joblinknigeria.vercel.app"
+  
 ];
 
 console.log("✅ Allowed CORS origins:", allowedOrigins);
