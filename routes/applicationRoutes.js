@@ -1,10 +1,10 @@
 import express from "express";
-
 import {
   createApplication,
   getByToken,
   uploadCloudUrls,
   getAllApplications,
+  getHistoryByPublicToken, // 👈 ADD THIS
 } from "../controllers/applicationController.js";
 
 const router = express.Router();
@@ -13,8 +13,11 @@ const router = express.Router();
 router.post("/", createApplication);
 router.get("/access/:token", getByToken);
 
-// ✅ FRONTEND → CLOUDINARY → BACKEND
+// FRONTEND → CLOUDINARY → BACKEND
 router.post("/upload/cloud/:token", uploadCloudUrls);
+
+// ✅ HISTORY (PUBLIC)
+router.get("/history/:token", getHistoryByPublicToken);
 
 // ================= ADMIN =================
 router.get("/", getAllApplications);
