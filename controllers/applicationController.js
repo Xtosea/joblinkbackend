@@ -81,6 +81,22 @@ export const uploadCloudUrls = async (req, res) => {
   }
 };
 
+export const getHistoryByPublicToken = async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    const application = await Application.findOne({ publicToken: token });
+
+    if (!application) {
+      return res.status(404).json({ message: "Application not found" });
+    }
+
+    res.json(application);
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 /* ================= ADMIN ================= */
 export const getAllApplications = async (req, res) => {
   try {
