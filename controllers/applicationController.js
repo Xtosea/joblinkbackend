@@ -1,9 +1,11 @@
+import mongoose from "mongoose";
 import Application from "../models/Application.js";
 import crypto from "crypto";
 import {
   sendApplicationNotification,
   sendAdminNotification,
 } from "../utils/mailer.js";
+
 
 /* ================= CREATE APPLICATION ================= */
 export const createApplication = async (req, res) => {
@@ -81,11 +83,17 @@ export const uploadCloudUrls = async (req, res) => {
   }
 };
 
+import mongoose from "mongoose";
+
 export const getHistoryByPublicToken = async (req, res) => {
   try {
     const { token } = req.params;
 
-    const application = await Application.findOne({ publicToken: token });
+    if (!mongoose.Types.ObjectId.isValid(token)) {
+      return res.status(400).json({ message: "Invalid history token" });
+    }
+
+    const application = await Application.findById(token);
 
     if (!application) {
       return res.status(404).json({ message: "Application not found" });
@@ -93,6 +101,7 @@ export const getHistoryByPublicToken = async (req, res) => {
 
     res.json(application);
   } catch (err) {
+    console.error("History error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
