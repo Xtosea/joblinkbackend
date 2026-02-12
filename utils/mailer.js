@@ -22,8 +22,7 @@ export const sendApplicationNotification = async ({
     htmlContent: `
       <p>Hello <strong>${fullname}</strong>,</p>
       <p>Your application was received successfully.</p>
-      <p>Hello,
-
+      <p>
 Thank you for applying to JobLink.
 
 To proceed with your application and begin our job-hunting support for you, please carefully follow the steps below:
@@ -37,14 +36,9 @@ What You Need to Do
 
 2. Make Payment
 
-   - Pay the service fee of ₦10,000 (Ten Thousand Naira).
+   - Pay the service fee of ₦10,000 (Ten Thousand Naira) 7045544361 Opay Christopher Ikelegbe Isea or 0701 189 7080 Opay Dan Aliu.
 
-3. Submit Required Documents
-
-   - Upload your CV and proof of payment using the proof submission link below:
-👉 [Proof Submission Link]
-
-4. Agree to Our Terms
+3. Agree to Our Terms
 
    - You must agree to JobLink’s Terms & Conditions before submission.
 
@@ -65,7 +59,9 @@ Once your documents are submitted and verified, we will begin processing your ap
 Thank you for choosing JobLink.
 
 Best regards,
-JobLink Team</p>
+JobLink Team.
+
+Submit your proof of payment and CV by using this link below 👇</p>
       <a href="${link}">${link}</a>
     `,
   });
