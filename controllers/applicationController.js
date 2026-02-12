@@ -83,7 +83,6 @@ export const uploadCloudUrls = async (req, res) => {
   }
 };
 
-import mongoose from "mongoose";
 
 export const getHistoryByPublicToken = async (req, res) => {
   try {
