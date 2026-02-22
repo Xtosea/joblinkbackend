@@ -25,30 +25,30 @@ const allowedOrigins = [
   "http://127.0.0.1:3000",
   "https://joblinks.globelynks.com",
   "https://jobapplication.globelynks.com",
-  
+  "https://joblinknigeria.vercel.app", // ✅ VERY IMPORTANT
 ];
 
-console.log("✅ Allowed CORS origins:", allowedOrigins);
-
 // ================== CORS Setup ==================
-const corsOptions = {
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // allow Postman / server requests
-    if (allowedOrigins.includes(origin)) return callback(null, true);
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true); // Postman, mobile apps
 
-    console.warn("❌ Blocked CORS origin:", origin);
-    return callback(new Error("Not allowed by CORS"));
-  },
-  methods: ["GET","POST","PUT","PATCH","DELETE","OPTIONS"],
-  allowedHeaders: ["Content-Type","Authorization"],
-  credentials: false, // JWT in headers does not need cookies
-};
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        console.log("❌ Blocked by CORS:", origin);
+        return callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: false,
+  })
+);
 
-// Apply CORS globally
-app.use(cors(corsOptions));
-
-// Handle preflight requests
-app.options("*", cors(corsOptions));
+// Handle preflight requests properly
+app.options("*", cors());
 
 // ================== Middleware ==================
 app.use(express.json());
@@ -62,10 +62,11 @@ app.use("/api/auth", authRoutes);
 app.use("/api/applications", applicationRoutes);
 app.use("/api/admin", adminRoutes);
 
-// ================== MongoDB Connection ==================
-mongoose.connect(process.env.MONGO_URI)
+// ================== MongoDB ==================
+mongoose
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB connected"))
-  .catch(err => console.error("❌ MongoDB connection error:", err));
+  .catch((err) => console.error("❌ MongoDB connection error:", err));
 
 // ================== Start Server ==================
 const PORT = process.env.PORT || 5000;
