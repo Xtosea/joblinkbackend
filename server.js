@@ -20,11 +20,11 @@ const allowedOrigins = [
   "http://localhost:3000",
   "http://127.0.0.1:5173",
   "http://127.0.0.1:3000",
+  "https://localhost",                 // ✅ ADD THIS (APK FIX)
   "https://joblinks.globelynks.com",
   "https://jobapplication.globelynks.com",
   "https://joblinknigeria.vercel.app",
 ];
-
 app.use(cors({
   origin: function(origin, callback) {
     if (!origin) return callback(null, true); // ✅ mobile apps have no origin
