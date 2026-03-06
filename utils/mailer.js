@@ -1,6 +1,6 @@
 // utils/mailer.js
 import SibApiV3Sdk from "sib-api-v3-sdk";
-import { Capacitor } from "@capacitor/core"; // ← Import Capacitor
+
 
 const client = SibApiV3Sdk.ApiClient.instance;
 client.authentications["api-key"].apiKey = process.env.BREVO_API_KEY;
