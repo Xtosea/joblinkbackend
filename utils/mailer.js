@@ -16,7 +16,7 @@ export const sendApplicationNotification = async ({
   // Determine base URL dynamically
   const baseUrl =
     process.env.NODE_ENV === "production"
-      ? "https://joblink.globelynks.com"
+      ? "https://joblinks.globelynks.com"
       : "http://localhost:5000";
 
   // Hash route ensures React Router works for both web & APK
