@@ -46,8 +46,7 @@ To proceed with your application and begin our job-hunting support for you, plea
 2. Make Payment
    - Pay the service fee of ₦10,000 (Ten Thousand Naira) to:
      7045544361 Opay Christopher Ikelegbe Isea
-     0701 189 7080 Opay Dan Aliu
-
+     
 3. Agree to Our Terms
    - You must agree to JobLink’s Terms & Conditions before submission.
 
