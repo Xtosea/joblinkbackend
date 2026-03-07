@@ -83,23 +83,29 @@ Submit your proof of payment and CV by using this link below 👇</p>
 
 // ================= ADMIN EMAIL =================
 export const sendAdminNotification = async ({
-fullname,
-email,
-jobType,
-jobPosition,
+  fullname,
+  email,
+  jobType,
+  jobPosition,
 }) => {
-await emailApi.sendTransacEmail({
-sender: {
-email: "no-reply@brevo.com",
-name: "JobLink Nigeria",
-},
-to: [
-{
-email: process.env.ADMIN_EMAIL,
-name: "Admin",
-},
-],
-subject: "📥 New Job Application Submitted",
-htmlContent:   <h3>New Application Received</h3>   <p><strong>Name:</strong> ${fullname}</p>   <p><strong>Email:</strong> ${email}</p>   <p><strong>Job Type:</strong> ${jobType}</p>   <p><strong>Position:</strong> ${jobPosition}</p>  ,
-});
+  await emailApi.sendTransacEmail({
+    sender: {
+      email: "no-reply@brevo.com",
+      name: "JobLink Nigeria",
+    },
+    to: [
+      {
+        email: process.env.ADMIN_EMAIL,
+        name: "Admin",
+      },
+    ],
+    subject: "📥 New Job Application Submitted",
+    htmlContent: `
+      <h3>New Application Received</h3>
+      <p><strong>Name:</strong> ${fullname}</p>
+      <p><strong>Email:</strong> ${email}</p>
+      <p><strong>Job Type:</strong> ${jobType}</p>
+      <p><strong>Position:</strong> ${jobPosition}</p>
+    `,
+  });
 };
