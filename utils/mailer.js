@@ -8,8 +8,8 @@ const emailApi = new SibApiV3Sdk.TransactionalEmailsApi();
 
 // ================= USER EMAIL =================
 export const sendApplicationNotification = async ({ email, fullname, link }) => {
-  // Add # for HashRouter so the webapp opens correct page
-  const hashLink = link.replace("/upload/", "/#/upload/");
+  // Ensure HashRouter link works on Vercel
+  const hashlink = link.replace("/upload/", "/#/upload/");
 
   await emailApi.sendTransacEmail({
     sender: {
@@ -21,9 +21,33 @@ export const sendApplicationNotification = async ({ email, fullname, link }) => 
     htmlContent: `
       <p>Hello <strong>${fullname}</strong>,</p>
       <p>Your application was received successfully.</p>
+      <p>Thank you for applying to JobLink.</p>
+
+      <h4>What You Need to Do</h4>
+      <ol>
+        <li><strong>Prepare your CV:</strong> Submit your existing CV or we will create one for you.</li>
+        <li><strong>Make Payment:</strong> Pay ₦10,000 (Ten Thousand Naira) to 7045544361 Opay Christopher Ikelegbe Isea</li>
+        <li><strong>Agree to Terms:</strong> You must agree to JobLink’s Terms & Conditions before submission.</li>
+      </ol>
+
+      <h4>What We Will Do for You</h4>
+      <ul>
+        <li>Review, update, or create your CV</li>
+        <li>Hunt and apply for suitable job opportunities on your behalf</li>
+        <li>Train you on interview preparation</li>
+      </ul>
+
+      <p>Important Notes:</p>
+      <ul>
+        <li>Each applicant gets 3 interview opportunities per application.</li>
+        <li>After 3 slots, you need to reapply and make a new payment to continue.</li>
+        <li>JobLink does not guarantee employment but provides full support and preparation.</li>
+      </ul>
 
       <p>Submit your proof of payment and CV by using this link below 👇</p>
-      <a href="${hashLink}">${hashLink}</a>
+      <a href="${hashlink}">${hashlink}</a>
+
+      <p>Best regards,<br/>JobLink Team</p>
     `,
   });
 };
