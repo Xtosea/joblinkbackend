@@ -25,19 +25,21 @@ const allowedOrigins = [
   "https://jobapplication.globelynks.com",
   "https://joblinknigeria.vercel.app",
 ];
-app.use(cors({
+const corsOptions = {
   origin: function(origin, callback) {
-    if (!origin) return callback(null, true); // ✅ mobile apps have no origin
+    if (!origin) return callback(null, true); // mobile / curl
     if (allowedOrigins.includes(origin)) return callback(null, true);
+
     console.log("❌ Blocked by CORS:", origin);
     return callback(new Error("Not allowed by CORS"));
   },
   methods: ["GET","POST","PUT","PATCH","DELETE","OPTIONS"],
   allowedHeaders: ["Content-Type","Authorization"],
   credentials: false
-}));
+};
 
-app.options("*", cors());
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 // Body parsers
 app.use(express.json());
