@@ -26,7 +26,7 @@ export const sendApplicationNotification = async ({ email, fullname, link }) => 
       <h4>What You Need to Do</h4>
       <ol>
         <li><strong>Prepare your CV:</strong> Submit your existing CV or we will create one for you.</li>
-        <li><strong>Make Payment:</strong> Pay ₦10,000 (Ten Thousand Naira) to 7045544361 Opay Christopher Ikelegbe Isea</li>
+        <li><strong>Make Payment:</strong> Pay ₦5,000 (Five Thousand Naira) to 7045544361 Opay Christopher Ikelegbe Isea</li>
         <li><strong>Agree to Terms:</strong> You must agree to JobLink’s Terms & Conditions before submission.</li>
       </ol>
 
