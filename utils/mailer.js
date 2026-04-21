@@ -59,16 +59,25 @@ export const sendAdminNotification = async ({
   jobType,
   jobPosition,
 }) => {
-  await emailApi.sendTransacEmail({
-    sender: { email: "no-reply@brevo.com", name: "JobLink Nigeria" },
-    to: [{ email: process.env.ADMIN_EMAIL, name: "Admin" }],
-    subject: "📥 New Job Application Submitted",
-    htmlContent: `
-      <h3>New Application Received</h3>
-      <p><strong>Name:</strong> ${fullname}</p>
-      <p><strong>Email:</strong> ${email}</p>
-      <p><strong>Job Type:</strong> ${jobType}</p>
-      <p><strong>Position:</strong> ${jobPosition}</p>
-    `,
-  });
+  try {
+    console.log("Admin email:", process.env.ADMIN_EMAIL);
+
+    const result = await emailApi.sendTransacEmail({
+      sender: { email: "no-reply@brevo.com", name: "JobLink Nigeria" },
+      to: [{ email: process.env.ADMIN_EMAIL, name: "Admin" }],
+      subject: "📥 New Job Application Submitted",
+      htmlContent: `
+        <h3>New Application Received</h3>
+        <p><strong>Name:</strong> ${fullname}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Job Type:</strong> ${jobType}</p>
+        <p><strong>Position:</strong> ${jobPosition}</p>
+      `,
+    });
+
+    console.log("Admin email sent successfully:", result);
+
+  } catch (error) {
+    console.error("Admin email failed:", error.response?.body || error);
+  }
 };
