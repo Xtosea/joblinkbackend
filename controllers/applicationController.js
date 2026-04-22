@@ -114,3 +114,29 @@ export const getAllApplications = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch applications" });
   }
 };
+
+
+
+export const updateApplicationStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    const updated = await Application.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ message: "Application not found" });
+    }
+
+    res.json({
+      message: "Status updated",
+      application: updated,
+    });
+
+  } catch (err) {
+    res.status(500).json({ message: "Failed to update status" });
+  }
+};
