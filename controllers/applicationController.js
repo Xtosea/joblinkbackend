@@ -147,37 +147,32 @@ export const updateApplicationStatus = async (req, res) => {
     });
 
     await transporter.sendMail({
-      from: `"JobLink" <${process.env.EMAIL_USER}>`,
-      to: app.email,
-      subject: "Application Update",
-      html: `
-        <h3>Hello ${app.fullname}</h3>
+  from: `"JobLink" <${process.env.EMAIL_USER}>`,
+  to: app.email,
+  subject: "Application Update",
+  html: `
+    <h3>Hello ${app.fullname}</h3>
 
-        <p>Your application status is now: <b>${app.status}</b></p>
+    <p>Status: <b>${app.status}</b></p>
 
-        ${
-          app.reply
-            ? `<p><b>Admin Reply:</b> ${app.reply}</p>`
-            : ""
-        }
+    ${app.reply ? `<p><b>Reply:</b> ${app.reply}</p>` : ""}
 
-        <p>Click below to view your application:</p>
-
-        <a 
-          href="${process.env.FRONTEND_URL}/#/history/${app._id}" 
-          style="
-            display:inline-block;
-            padding:10px 15px;
-            background:#22c55e;
-            color:white;
-            text-decoration:none;
-            border-radius:5px;
-          "
-        >
-          View Your Application
-        </a>
-      `,
-    });
+    <a 
+      href="${process.env.FRONTEND_URL}/#/history/${app.publicToken}"
+      style="
+        display:inline-block;
+        padding:10px 12px;
+        background:#22c55e;
+        color:#fff;
+        text-decoration:none;
+        border-radius:6px;
+        margin-top:10px;
+      "
+    >
+      View Your Application
+    </a>
+  `,
+});
 
     // =========================
     // 📱 WHATSAPP (optional)
