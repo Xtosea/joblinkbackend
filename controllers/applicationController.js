@@ -116,7 +116,6 @@ export const getAllApplications = async (req, res) => {
 
 
 
-import nodemailer from "nodemailer";
 import axios from "axios";
 
 export const updateApplicationStatus = async (req, res) => {
@@ -190,7 +189,7 @@ export const updateApplicationStatus = async (req, res) => {
 ${
   app.reply ? "Reply: " + app.reply : ""
 }
-View: ${process.env.FRONTEND_URL}/#/history/${app._id}`,
+`View: ${process.env.FRONTEND_URL}/#/history/${app.publicToken}
             },
           },
           {
