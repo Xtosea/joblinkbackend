@@ -15,15 +15,18 @@ export const createApplication = async (req, res) => {
     const emailToken = crypto.randomBytes(32).toString("hex");
     const tokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-    await Application.create({
-      fullname,
-      email,
-      mobile,
-      jobType,
-      jobPosition,
-      emailToken,
-      tokenExpiresAt,
-    });
+    const publicToken = crypto.randomBytes(24).toString("hex");
+
+await Application.create({
+  fullname,
+  email,
+  mobile,
+  jobType,
+  jobPosition,
+  emailToken,
+  tokenExpiresAt,
+  publicToken, // 🔥 ADD THIS
+});
 
     const accessLink = `${process.env.FRONTEND_URL}/upload/${emailToken}`;
 
@@ -88,11 +91,7 @@ export const getHistoryByPublicToken = async (req, res) => {
   try {
     const { token } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(token)) {
-      return res.status(400).json({ message: "Invalid history token" });
-    }
-
-    const application = await Application.findById(token);
+    const application = await Application.findOne({ publicToken: token });
 
     if (!application) {
       return res.status(404).json({ message: "Application not found" });
