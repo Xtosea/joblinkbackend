@@ -4,22 +4,20 @@ import {
   getByToken,
   uploadCloudUrls,
   getAllApplications,
-  getHistoryByPublicToken, // 👈 ADD THIS
+  getHistoryByPublicToken,
+  updateApplicationStatus,
 } from "../controllers/applicationController.js";
 
 const router = express.Router();
 
-// ================= APPLICANT ROUTES =================
+// PUBLIC
 router.post("/", createApplication);
 router.get("/access/:token", getByToken);
-
-// FRONTEND → CLOUDINARY → BACKEND
 router.post("/upload/cloud/:token", uploadCloudUrls);
-
-// ✅ HISTORY (PUBLIC)
 router.get("/history/:token", getHistoryByPublicToken);
 
-// ================= ADMIN =================
-router.get("/", getAllApplications);
+// ADMIN (PROTECTED)
+router.get("/applications", getAllApplications);
+router.patch("/applications/:id/status", updateApplicationStatus);
 
 export default router;
