@@ -16,8 +16,8 @@ router.get("/access/:token", getByToken);
 router.post("/upload/cloud/:token", uploadCloudUrls);
 router.get("/history/:token", getHistoryByPublicToken);
 
-// ADMIN (PROTECTED)
-router.get("/applications", getAllApplications);
-router.patch("/applications/:id/status", updateApplicationStatus);
+// ADMIN
+router.get("/", getAllApplications);
+router.patch("/:id/status", updateApplicationStatus);
 
 export default router;
