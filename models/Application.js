@@ -14,21 +14,33 @@ const applicationSchema = new mongoose.Schema(
 
     jobPosition: { type: String, required: true, trim: true },
 
-    proofFile: String,
+    // Files
     resumeFile: String,
+    proofFile: String,
 
+    // Admin reply
     reply: { type: String, default: "" },
+
+    // Status (merged + expanded safely)
     status: {
       type: String,
-      enum: ["Pending", "Replied", "Approved", "Declined"],
+      enum: [
+        "Pending",
+        "Processing",
+        "Replied",
+        "Shortlisted",
+        "Approved",
+        "Declined",
+      ],
       default: "Pending",
     },
 
-    // 🔑 One-time upload token
+    // 🔑 One-time upload token (for secure actions like proof upload)
     emailToken: { type: String, unique: true },
+
     tokenExpiresAt: Date,
 
-    // 🔓 Permanent history token
+    // 🔓 Permanent public history token
     publicToken: {
       type: String,
       unique: true,
