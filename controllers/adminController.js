@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import Admin from "../models/adminModel.js";
 import Application from "../models/Application.js";
+import { sendApplicationNotification } from "../utils/mailer.js";
 import nodemailer from "nodemailer";
 
 /* ======================
