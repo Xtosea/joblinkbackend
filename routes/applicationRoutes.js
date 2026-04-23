@@ -8,6 +8,8 @@ import {
   updateApplicationStatus,
 } from "../controllers/applicationController.js";
 
+import { resendEmail } from "../controllers/adminController.js";
+
 const router = express.Router();
 
 // PUBLIC
@@ -19,5 +21,6 @@ router.get("/history/:token", getHistoryByPublicToken);
 // ADMIN
 router.get("/", getAllApplications);
 router.patch("/:id/status", updateApplicationStatus);
+router.post("/resend/:id", resendEmail); // ✅ ADD THIS
 
 export default router;
