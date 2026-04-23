@@ -100,6 +100,8 @@ export const updateApplication = asyncHandler(async (req, res) => {
 /* ======================
    🔁 RESEND APPLICATION EMAIL
 ====================== */
+import crypto from "crypto";
+
 export const resendEmail = asyncHandler(async (req, res) => {
   const application = await Application.findById(req.params.id);
 
@@ -108,14 +110,18 @@ export const resendEmail = asyncHandler(async (req, res) => {
     throw new Error("Application not found");
   }
 
+  // 🔥 FIX: generate token if missing
   if (!application.emailToken) {
-    res.status(400);
-    throw new Error("No email token found");
+    application.emailToken = crypto.randomBytes(32).toString("hex");
+
+    // optional: expiry
+    application.tokenExpiresAt = Date.now() + 1000 * 60 * 60; // 1 hour
+
+    await application.save();
   }
 
   const link = `${process.env.FRONTEND_URL}/upload/${application.emailToken}`;
 
-  // ✅ Use Brevo instead of nodemailer
   await sendApplicationNotification({
     email: application.email,
     fullname: application.fullname,
