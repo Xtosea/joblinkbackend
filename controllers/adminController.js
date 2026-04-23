@@ -107,16 +107,18 @@ export const resendEmail = asyncHandler(async (req, res) => {
     throw new Error("Application not found");
   }
 
-  const link = `${process.env.FRONTEND_URL}/upload/${application.accessToken}`;
+  if (!application.emailToken) {
+    res.status(400);
+    throw new Error("No email token found");
+  }
 
-  await transporter.sendMail({
-    to: application.email,
-    subject: "Application Upload Link",
-    html: `
-      <h3>Hello ${application.fullname}</h3>
-      <p>You can upload your documents using the link below:</p>
-      <a href="${link}">${link}</a>
-    `,
+  const link = `${process.env.FRONTEND_URL}/upload/${application.emailToken}`;
+
+  // ✅ Use Brevo instead of nodemailer
+  await sendApplicationNotification({
+    email: application.email,
+    fullname: application.fullname,
+    link,
   });
 
   res.json({ message: "Email resent successfully" });
