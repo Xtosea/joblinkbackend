@@ -5,7 +5,7 @@ import {
   sendApplicationNotification,
   sendAdminNotification,
 } from "../utils/mailer.js";
-import nodemailer from "nodemailer";
+
 
 /* ================= CREATE APPLICATION ================= */
 export const createApplication = async (req, res) => {
@@ -134,44 +134,7 @@ export const updateApplicationStatus = async (req, res) => {
 
     await app.save();
 
-    // =========================
-    // 📧 SEND EMAIL
-    // =========================
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-
-    await transporter.sendMail({
-  from: `"JobLink" <${process.env.EMAIL_USER}>`,
-  to: app.email,
-  subject: "Application Update",
-  html: `
-    <h3>Hello ${app.fullname}</h3>
-
-    <p>Status: <b>${app.status}</b></p>
-
-    ${app.reply ? `<p><b>Reply:</b> ${app.reply}</p>` : ""}
-
-    <a 
-      href="${process.env.FRONTEND_URL}/#/history/${app.publicToken}"
-      style="
-        display:inline-block;
-        padding:10px 12px;
-        background:#22c55e;
-        color:#fff;
-        text-decoration:none;
-        border-radius:6px;
-        margin-top:10px;
-      "
-    >
-      View Your Application
-    </a>
-  `,
-});
+    
 
     // =========================
     // 📱 WHATSAPP (optional)
