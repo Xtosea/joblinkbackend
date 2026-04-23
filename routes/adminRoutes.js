@@ -69,34 +69,9 @@ router.put("/applications/:id", verifyAdmin, updateApplication);
 // ✅ RESEND application email
 router.post("/applications/resend/:id", verifyAdmin, resendEmail);
 
+router.post("/resend/:id", resendEmail); // ✅ ADD THIS
+
+
 export default router;
 
 
-router.get("/notifications", async (req, res) => {
-  try {
-    const notifications = await Notification.find()
-      .sort({ createdAt: -1 })
-      .limit(20);
-
-    res.json({ notifications });
-
-  } catch (err) {
-    res.status(500).json({ message: "Failed to fetch notifications" });
-  }
-});
-
-
-router.patch("/notifications/:id/read", async (req, res) => {
-  try {
-    const updated = await Notification.findByIdAndUpdate(
-      req.params.id,
-      { read: true },
-      { new: true }
-    );
-
-    res.json(updated);
-
-  } catch (err) {
-    res.status(500).json({ message: "Failed to update notification" });
-  }
-});
