@@ -67,7 +67,7 @@ router.get("/applications/:id", verifyAdmin, getApplicationById);
 router.put("/applications/:id", verifyAdmin, updateApplication);
 
 // ✅ RESEND application email
-router.patch("/applications/resend/:id", verifyAdmin, resendEmail);
+router.post("/applications/resend/:id", verifyAdmin, resendEmail);
 
 export default router;
 
