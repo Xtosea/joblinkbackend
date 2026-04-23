@@ -5,7 +5,7 @@ import {
   sendApplicationNotification,
   sendAdminNotification,
 } from "../utils/mailer.js";
-
+import nodemailer from "nodemailer";
 
 /* ================= CREATE APPLICATION ================= */
 export const createApplication = async (req, res) => {
@@ -185,12 +185,11 @@ export const updateApplicationStatus = async (req, res) => {
             to: app.mobile,
             type: "text",
             text: {
-              body: `Hello ${app.fullname}, your application status is ${app.status}.
-${
-  app.reply ? "Reply: " + app.reply : ""
-}
-`View: ${process.env.FRONTEND_URL}/#/history/${app.publicToken}
-            },
+  body: `Hello ${app.fullname}, your application status is ${app.status}.
+${app.reply ? "Reply: " + app.reply : ""}
+View: ${process.env.FRONTEND_URL}/#/history/${app.publicToken}
+`,
+},
           },
           {
             headers: {
