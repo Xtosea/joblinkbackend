@@ -21,6 +21,6 @@ router.get("/history/:token", getHistoryByPublicToken);
 // ADMIN
 router.get("/", getAllApplications);
 router.patch("/:id/status", updateApplicationStatus);
-router.post("/resend/:id", resendEmail); // ✅ ADD THIS
+
 
 export default router;
