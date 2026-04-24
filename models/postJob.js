@@ -32,6 +32,13 @@ const jobSchema = new mongoose.Schema(
       default: 0,
     },
 
+   jobType: String,
+salary: String,
+createdAt: {
+  type: Date,
+  default: Date.now,
+},
+
     // 👤 Owner (company/admin)
     postedBy: {
       type: mongoose.Schema.Types.ObjectId,
