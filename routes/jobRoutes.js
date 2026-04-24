@@ -19,5 +19,6 @@ router.post("/:id/apply", applyToJob);
 
 // 🆕 Create job
 router.post("/", createJob);
+router.post("/:id/apply", applyToJob);
 
 export default router;
