@@ -1,6 +1,5 @@
 import Job from "../models/postJob.js";
-
-
+import JobApplication from "../models/JobApplication.js";
 
 export const checkFeaturedExpiry = async () => {
   const now = new Date();
@@ -95,6 +94,37 @@ const job = await Job.create({
 });
 
     res.status(201).json(job);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
+
+export const applyToJob = async (req, res) => {
+  try {
+    const { name, email, cvUrl } = req.body;
+
+    const job = await Job.findById(req.params.id);
+    if (!job) {
+      return res.status(404).json({ message: "Job not found" });
+    }
+
+    // 💾 Save application
+    const application = await JobApplication.create({
+      job: job._id,
+      name,
+      email,
+      cvFile: cvUrl,
+    });
+
+    // 📊 increment count
+    job.applicationsCount += 1;
+    await job.save();
+
+    res.json({
+      message: "Application submitted successfully",
+      application,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
