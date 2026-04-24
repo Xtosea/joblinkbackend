@@ -8,15 +8,16 @@ import {
 
 const router = express.Router();
 
-// 📄 Get single job (and increment views)
+// 📌 Get all jobs
+router.get("/", getJobs);
+
+// 📄 Get single job
 router.get("/:id", getJobById);
 
 // 📥 Apply to job
 router.post("/:id/apply", applyToJob);
 
-router.get("/", getJobs);
-import { createJob } from "../controllers/jobController.js";
-
+// 🆕 Create job
 router.post("/", createJob);
 
 export default router;
