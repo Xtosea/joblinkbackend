@@ -9,7 +9,7 @@ import applicationRoutes from "./routes/applicationRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
-
+import jobRoutes from "./routes/jobRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -55,6 +55,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/applications", applicationRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/jobs", jobRoutes);
 
 
 // MongoDB
