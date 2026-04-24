@@ -1,7 +1,9 @@
 import express from "express";
 import {
+  getJobs,
   getJobById,
   applyToJob,
+  createJob,
 } from "../controllers/jobController.js";
 
 const router = express.Router();
