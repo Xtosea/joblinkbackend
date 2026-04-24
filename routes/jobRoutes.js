@@ -12,4 +12,6 @@ router.get("/:id", getJobById);
 // 📥 Apply to job
 router.post("/:id/apply", applyToJob);
 
+router.get("/", getJobs);
+
 export default router;
