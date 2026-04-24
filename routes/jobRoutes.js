@@ -13,5 +13,8 @@ router.get("/:id", getJobById);
 router.post("/:id/apply", applyToJob);
 
 router.get("/", getJobs);
+import { createJob } from "../controllers/jobController.js";
+
+router.post("/", createJob);
 
 export default router;
