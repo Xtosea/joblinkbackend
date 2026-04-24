@@ -73,22 +73,26 @@ export const getJobs = async (req, res) => {
 export const createJob = async (req, res) => {
   try {
     const {
-      title,
-      company,
-      description,
-      location,
-      postedBy,
-    } = req.body;
+  title,
+  company,
+  description,
+  location,
+  jobType,
+  salary,
+  postedBy
+} = req.body;
 
-    const job = await Job.create({
-      title,
-      company,
-      description,
-      location,
-      postedBy,
-      planType: "free",
-      isFeatured: false,
-    });
+const job = await Job.create({
+  title,
+  company,
+  description,
+  location,
+  jobType,
+  salary,
+  postedBy,
+  planType: "free",
+  isFeatured: false,
+});
 
     res.status(201).json(job);
   } catch (error) {
