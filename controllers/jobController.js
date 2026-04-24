@@ -67,3 +67,31 @@ export const getJobs = async (req, res) => {
   const jobs = await Job.find().sort({ isFeatured: -1, createdAt: -1 });
   res.json(jobs);
 };
+
+
+// 📌 Create Job (FREE or PREMIUM later)
+export const createJob = async (req, res) => {
+  try {
+    const {
+      title,
+      company,
+      description,
+      location,
+      postedBy,
+    } = req.body;
+
+    const job = await Job.create({
+      title,
+      company,
+      description,
+      location,
+      postedBy,
+      planType: "free",
+      isFeatured: false,
+    });
+
+    res.status(201).json(job);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
