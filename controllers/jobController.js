@@ -62,3 +62,8 @@ export const applyToJob = async (req, res) => {
   }
 };
 
+
+export const getJobs = async (req, res) => {
+  const jobs = await Job.find().sort({ isFeatured: -1, createdAt: -1 });
+  res.json(jobs);
+};
