@@ -4,23 +4,24 @@ import {
   getJobById,
   applyToJob,
   createJob,
+  getAllJobApplicants, // ✅ MAKE SURE YOU IMPORT THIS
 } from "../controllers/jobController.js";
 
 const router = express.Router();
 
+// ================= IMPORTANT: ADMIN ROUTES FIRST =================
+router.get("/admin/applicants", getAllJobApplicants);
+
 // 📌 Get all jobs
 router.get("/", getJobs);
+
+// 🆕 Create job
+router.post("/", createJob);
 
 // 📄 Get single job
 router.get("/:id", getJobById);
 
 // 📥 Apply to job
 router.post("/:id/apply", applyToJob);
-
-// 🆕 Create job
-router.post("/", createJob);
-router.post("/:id/apply", applyToJob);
-// GET all job applicants
-router.get("/admin/applicants", getAllJobApplicants);
 
 export default router;
