@@ -6,6 +6,8 @@ import {
   createJob,
   getAllJobApplicants, // ✅ MAKE SURE YOU IMPORT THIS
 } from "../controllers/jobController.js";
+import { protect } from "../middleware/authMiddleware.js";
+import { checkRole } from "../middleware/checkRole.js";
 
 const router = express.Router();
 
@@ -25,6 +27,9 @@ router.get("/:id", getJobById);
 
 // 📥 Apply to job
 router.post("/:id/apply", applyToJob);
+
+// 🆕 Only employers can post jobs
+router.post("/", protect, checkRole("employer"), createJob);
 
 router.get(
   "/:id/applicants",
