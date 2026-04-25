@@ -18,6 +18,8 @@ router.get("/", getJobs);
 // 🆕 Create job
 router.post("/", createJob);
 
+router.get("/types", getJobTypes); 
+
 // 📄 Get single job
 router.get("/:id", getJobById);
 
