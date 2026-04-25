@@ -39,6 +39,19 @@ createdAt: {
   default: Date.now,
 },
 
+// models/postJob.js
+applicants: [
+  {
+    name: String,
+    email: String,
+    cvUrl: String,
+    appliedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+],
+
     // 👤 Owner (company/admin)
     postedBy: {
       type: mongoose.Schema.Types.ObjectId,
