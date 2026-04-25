@@ -103,17 +103,15 @@ export const applyToJob = async (req, res) => {
       return res.status(404).json({ message: "Job not found" });
     }
 
-    // 💾 Save application in separate collection (BEST PRACTICE)
     const application = await JobApplication.create({
       job: job._id,
-      jobTitle: job.title,
+      jobTitle: job.title || "Unknown Role", // ✅ FIX
       name,
       email,
-      cvFile: cvUrl,
+      cvUrl, // ✅ CHANGE THIS (IMPORTANT)
       appliedAt: new Date(),
     });
 
-    // 📊 update stats
     job.applicationsCount += 1;
     await job.save();
 
@@ -121,6 +119,7 @@ export const applyToJob = async (req, res) => {
       message: "Application submitted successfully",
       application,
     });
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
