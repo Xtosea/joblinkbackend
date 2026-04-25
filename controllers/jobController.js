@@ -161,3 +161,35 @@ export const getAllJobApplicants = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const getJobs = async (req, res) => {
+  try {
+    const { jobType, category, search } = req.query;
+
+    let filter = {};
+
+    if (jobType) {
+      filter.jobType = jobType;
+    }
+
+    if (category) {
+      filter.category = category;
+    }
+
+    if (search) {
+      filter.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { company: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const jobs = await Job.find(filter).sort({
+      isFeatured: -1,
+      createdAt: -1,
+    });
+
+    res.json(jobs);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
