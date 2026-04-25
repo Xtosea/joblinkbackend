@@ -193,3 +193,19 @@ export const getJobs = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+
+
+export const getJobApplicants = async (req, res) => {
+  try {
+    const jobId = req.params.id;
+
+    const applicants = await JobApplication.find({ job: jobId })
+      .sort({ appliedAt: -1 })
+      .populate("job");
+
+    res.json(applicants);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
