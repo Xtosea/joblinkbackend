@@ -125,6 +125,28 @@ export const applyToJob = async (req, res) => {
   }
 };
 
+
+// GET /api/jobs/types
+export const getJobTypes = async (req, res) => {
+  try {
+    const types = await Job.aggregate([
+      {
+        $group: {
+          _id: "$jobType",
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { count: -1 },
+      },
+    ]);
+
+    res.json(types);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 /* =========================
    ADMIN: GET ALL APPLICANTS
 ========================= */
