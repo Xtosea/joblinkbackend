@@ -45,4 +45,6 @@ router.get(
   getEmployerJobs
 );
 
+router.post("/:id/apply", protect, checkRole("applicant"), applyToJob);
+
 export default router;
