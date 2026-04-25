@@ -61,4 +61,22 @@ applicants: [
   { timestamps: true }
 );
 
+
+isFeatured: {
+  type: Boolean,
+  default: false,
+},
+
+featuredUntil: Date,
+
+planType: {
+  type: String,
+  enum: ["free", "premium"],
+  default: "free",
+},
+
+views: {
+  type: Number,
+  default: 0,
+},
 export default mongoose.model("Job", jobSchema);
