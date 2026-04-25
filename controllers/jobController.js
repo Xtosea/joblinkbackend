@@ -209,3 +209,14 @@ export const getJobApplicants = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const getEmployerJobs = async (req, res) => {
+  try {
+    const jobs = await Job.find({ postedBy: req.user.id })
+      .sort({ createdAt: -1 });
+
+    res.json(jobs);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
