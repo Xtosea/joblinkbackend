@@ -33,4 +33,11 @@ router.get(
   getJobApplicants
 );
 
+router.get(
+  "/employer/jobs",
+  protect,
+  checkRole("employer"),
+  getEmployerJobs
+);
+
 export default router;
