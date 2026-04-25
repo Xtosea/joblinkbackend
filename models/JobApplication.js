@@ -1,22 +1,18 @@
 import mongoose from "mongoose";
 
-const jobApplicationSchema = new mongoose.Schema(
-  {
-    job: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Job",
-    },
-    name: String,
-    email: String,
-    cvFile: String, // Cloudinary URL
-
-    status: {
-      type: String,
-      enum: ["pending", "reviewed", "accepted", "rejected"],
-      default: "pending",
-    },
+const jobApplicationSchema = new mongoose.Schema({
+  job: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Job",
   },
-  { timestamps: true }
-);
+  jobTitle: String,
+  name: String,
+  email: String,
+  cvUrl: String, // ✅ MUST MATCH
+  appliedAt: {
+    type: Date,
+    default: Date.now,
+  },
+}, { timestamps: true });
 
 export default mongoose.model("JobApplication", jobApplicationSchema);
