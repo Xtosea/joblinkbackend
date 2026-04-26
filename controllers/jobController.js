@@ -1,6 +1,6 @@
 import Job from "../models/postJob.js";
 import JobApplication from "../models/JobApplication.js";
-import role from "../models/role";
+import job from "../models/job.js";
 
 /* =========================
    FEATURED EXPIRY CHECK
