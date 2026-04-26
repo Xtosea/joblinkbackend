@@ -10,7 +10,7 @@ import authRoutes from "./routes/authRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import jobRoutes from "./routes/jobRoutes.js";
-import postAuthRoutes from "./routes/postAuthRoute.js";
+import postAuthRoutes from "./routes/postAuthRoutes.js";
 
 dotenv.config();
 const app = express();
