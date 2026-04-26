@@ -57,7 +57,7 @@ app.use("/api/applications", applicationRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/jobs", jobRoutes);
-app.use("/api/auth", postAuthRoutes);
+app.use("/api/post", postAuthRoutes);
 
 
 // MongoDB
