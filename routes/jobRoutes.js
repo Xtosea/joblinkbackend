@@ -1,56 +1,84 @@
+
 import express from "express";
 import {
-  createJob,
   getJobs,
   getJobById,
   applyToJob,
-  getJobTypes,
-  getAllJobApplicants,
-  getJobApplicants,
-  getEmployerJobs,
+  createJob,
+  getAllJobApplicants, // ✅ MAKE SURE YOU IMPORT THIS
 } from "../controllers/jobController.js";
-
-import { protect } from "../middleware/auth.js";
+import { protect } from "../middleware/authMiddleware.js";
+import { checkRole } from "../middleware/checkRole.js";
 
 const router = express.Router();
 
-/* =========================
-   📌 PUBLIC ROUTES
-========================= */
+// ================= IMPORTANT: ADMIN ROUTES FIRST =================
+router.get("/admin/applicants", getAllJobApplicants);
 
-// 🔍 Get all jobs
+// 📌 Get all jobs
 router.get("/", getJobs);
+
+// 🆕 Create job
+router.post("/", createJob);
+
+router.get("/types", getJobTypes); 
 
 // 📄 Get single job
 router.get("/:id", getJobById);
 
-// 📊 Get job types
-router.get("/types/all", getJobTypes);
-
 // 📥 Apply to job
 router.post("/:id/apply", applyToJob);
 
+// 🆕 Only employers can post jobs
+router.post("/", protect, checkRole("employer"), createJob);
 
-/* =========================
-   🔐 EMPLOYER ROUTES
-========================= */
+router.get(
+  "/:id/applicants",
+  protect,
+  checkRole("employer"),
+  getJobApplicants
+);
 
-// ➕ Create job
-router.post("/", protect, createJob);
+router.get(
+  "/employer/jobs",
+  protect,
+  checkRole("employer"),
+  getEmployerJobs
+);
 
-// 📦 Get employer's jobs
-router.get("/employer/jobs", protect, getEmployerJobs);
+router.post("/:id/apply", protect, checkRole("applicant"), applyToJob);
 
-// 👥 Get applicants for a job
-router.get("/:id/applicants", protect, getJobApplicants);
+router.patch(
+  "/jobs/:id/boost",
+  protect,
+  checkRole("employer"),
+  async (req, res) => {
+    try {
+      const job = await Job.findById(req.params.id);
 
+      if (!job) {
+        return res.status(404).json({ message: "Job not found" });
+      }
 
-/* =========================
-   🔐 ADMIN ROUTES
-========================= */
+      job.isFeatured = true;
+      job.planType = "premium";
 
-// 🧾 Get all applicants (admin)
-router.get("/admin/applicants", protect, getAllJobApplicants);
+      // 7 days boost example
+      job.featuredUntil = new Date(
+        Date.now() + 7 * 24 * 60 * 60 * 1000
+      );
 
+      await job.save();
+
+      res.json({
+        message: "Job boosted successfully 🔥",
+        job,
+      });
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  }
+);
 
 export default router;
+
