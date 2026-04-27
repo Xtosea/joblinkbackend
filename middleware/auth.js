@@ -1,32 +1,27 @@
 import jwt from "jsonwebtoken";
-import Admin from "../models/adminModel.js";
+import User from "../models/User.js"; // 👈 make sure path is correct
 
-export const verifyAdmin = async (req, res, next) => {
+export const protect = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ message: "Unauthorized - no token" });
+      return res.status(401).json({ message: "No token, not authorized" });
     }
 
     const token = authHeader.split(" ")[1];
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    if (!decoded.id) {
-      return res.status(401).json({ message: "Unauthorized - no user ID" });
+    const user = await User.findById(decoded.id).select("-password");
+
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
     }
 
-    const admin = await Admin.findById(decoded.id).select("-password");
-
-    if (!admin) {
-      return res.status(401).json({ message: "Unauthorized - admin not found" });
-    }
-
-    req.admin = admin; // ✅ attach admin
+    req.user = user; // 👈 attach user
     next();
   } catch (err) {
-    console.error("verifyAdmin error:", err);
-    return res.status(401).json({ message: "Unauthorized - invalid token" });
+    res.status(401).json({ message: "Token failed" });
   }
 };
