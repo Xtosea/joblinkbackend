@@ -1,5 +1,7 @@
 
 import express from "express";
+const router = express.Router();
+
 import {
   getJobs,
   getJobById,
@@ -10,7 +12,7 @@ import {
 import { protect } from "../middleware/auth.js";
 import { checkRole } from "../middleware/checkRole.js";
 
-const router = express.Router();
+
 
 // ================= IMPORTANT: ADMIN ROUTES FIRST =================
 router.get("/admin/applicants", getAllJobApplicants);
