@@ -9,7 +9,7 @@ import {
   createJob,
   getAllJobApplicants, // ✅ MAKE SURE YOU IMPORT THIS
 } from "../controllers/jobController.js";
-import { protect } from "../middleware/auth.js";
+import { protect } from "../middleware/authMiddleware.js";
 import { checkRole } from "../middleware/checkRole.js";
 
 
