@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import User from "../models/User.js"; // 👈 make sure path is correct
+Admin from "../models/adminModel.js";
 
 export const protect = async (req, res, next) => {
   try {
