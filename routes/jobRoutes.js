@@ -1,7 +1,7 @@
 import express from "express";
 const router = express.Router();
 
-import Job from "../models/Job.js";
+import JobApplication from "../models/JobApplication.js";
 
 import {
   getJobs,
