@@ -1,4 +1,4 @@
-import Recruiter from "../models/Recruiter.js";
+import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -18,7 +18,7 @@ export const register = async (req, res) => {
       name,
       email,
       password: hashed,
-      role,
+      role: role || "applicant",
     });
 
     const token = jwt.sign(
