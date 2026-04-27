@@ -7,7 +7,6 @@ const jobSchema = new mongoose.Schema(
     description: String,
     location: String,
 
-    // 👇 NEW FIELDS
     isFeatured: {
       type: Boolean,
       default: false,
@@ -22,7 +21,6 @@ const jobSchema = new mongoose.Schema(
       default: "free",
     },
 
-    // 📊 Analytics (important for selling premium later)
     views: {
       type: Number,
       default: 0,
@@ -32,27 +30,21 @@ const jobSchema = new mongoose.Schema(
       default: 0,
     },
 
-   jobType: String,
-salary: String,
-createdAt: {
-  type: Date,
-  default: Date.now,
-},
+    jobType: String,
+    salary: String,
 
-// models/postJob.js
-applicants: [
-  {
-    name: String,
-    email: String,
-    cvUrl: String,
-    appliedAt: {
-      type: Date,
-      default: Date.now,
-    },
-  },
-],
+    applicants: [
+      {
+        name: String,
+        email: String,
+        cvUrl: String,
+        appliedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
 
-    // 👤 Owner (company/admin)
     postedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -61,22 +53,4 @@ applicants: [
   { timestamps: true }
 );
 
-
-isFeatured: {
-  type: Boolean,
-  default: false,
-},
-
-featuredUntil: Date,
-
-planType: {
-  type: String,
-  enum: ["free", "premium"],
-  default: "free",
-},
-
-views: {
-  type: Number,
-  default: 0,
-},
 export default mongoose.model("Job", jobSchema);
