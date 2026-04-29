@@ -1,7 +1,5 @@
 import express from "express";
-import Job from "../models/Job.js";
-
-import {
+;import {
   getJobs,
   getJobById,
   applyToJob,
