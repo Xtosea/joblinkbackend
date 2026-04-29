@@ -1,73 +1,56 @@
 import express from "express";
-const router = express.Router();
-
-import JobApplication from "../models/JobApplication.js";
-
 import {
+  createJob,
   getJobs,
   getJobById,
   applyToJob,
-  createJob,
-  getAllJobApplicants,
   getJobTypes,
+  getAllJobApplicants,
   getJobApplicants,
   getEmployerJobs,
 } from "../controllers/jobController.js";
 
 import { protect } from "../middleware/authMiddleware.js";
-import { checkRole } from "../middleware/checkRole.js";
 
+const router = express.Router();
 
-// ================= ADMIN =================
-router.get("/admin/applicants", getAllJobApplicants);
+/* =========================
+   📌 PUBLIC ROUTES
+========================= */
 
-// ================= JOB TYPES =================
-router.get("/types", getJobTypes);
-
-// ================= JOB CRUD =================
+// 🔍 Get all jobs
 router.get("/", getJobs);
 
-// Employer creates job
-router.post("/", protect, checkRole("employer"), createJob);
-
-// ================= APPLY =================
-router.post("/:id/apply", protect, checkRole("applicant"), applyToJob);
-
-// ================= JOB DETAILS =================
-router.get("/:id/applicants", protect, checkRole("employer"), getJobApplicants);
-
+// 📄 Get single job
 router.get("/:id", getJobById);
 
-// ================= EMPLOYER JOBS =================
-router.get("/employer/jobs", protect, checkRole("employer"), getEmployerJobs);
+// 📊 Get job types
+router.get("/types/all", getJobTypes);
 
-// ================= BOOST JOB =================
-router.patch(
-  "/jobs/:id/boost",
-  protect,
-  checkRole("employer"),
-  async (req, res) => {
-    try {
-      const job = await Job.findById(req.params.id);
+// 📥 Apply to job
+router.post("/:id/apply", applyToJob);
 
-      if (!job) {
-        return res.status(404).json({ message: "Job not found" });
-      }
 
-      job.isFeatured = true;
-      job.planType = "premium";
-      job.featuredUntil = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+/* =========================
+   🔐 EMPLOYER ROUTES
+========================= */
 
-      await job.save();
+// ➕ Create job
+router.post("/", protect, createJob);
 
-      res.json({
-        message: "Job boosted successfully 🔥",
-        job,
-      });
-    } catch (err) {
-      res.status(500).json({ message: err.message });
-    }
-  }
-);
+// 📦 Get employer's jobs
+router.get("/employer/jobs", protect, getEmployerJobs);
+
+// 👥 Get applicants for a job
+router.get("/:id/applicants", protect, getJobApplicants);
+
+
+/* =========================
+   🔐 ADMIN ROUTES
+========================= */
+
+// 🧾 Get all applicants (admin)
+router.get("/admin/applicants", protect, getAllJobApplicants);
+
 
 export default router;
