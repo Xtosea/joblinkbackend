@@ -1,56 +1,89 @@
 import express from "express";
+import Job from "../models/Job.js";
+
 import {
-  createJob,
   getJobs,
   getJobById,
   applyToJob,
-  getJobTypes,
+  createJob,
   getAllJobApplicants,
   getJobApplicants,
   getEmployerJobs,
+  getJobTypes,
 } from "../controllers/jobController.js";
 
 import { protect } from "../middleware/authMiddleware.js";
+import { checkRole } from "../middleware/checkRole.js";
 
 const router = express.Router();
 
-/* =========================
-   📌 PUBLIC ROUTES
-========================= */
 
-// 🔍 Get all jobs
+// ================= ADMIN ROUTES =================
+router.get("/admin/applicants", protect, checkRole("admin"), getAllJobApplicants);
+
+
+// ================= PUBLIC ROUTES =================
+
+// Get all jobs
 router.get("/", getJobs);
 
-// 📄 Get single job
+// Get job types
+router.get("/types", getJobTypes);
+
+// Get single job
 router.get("/:id", getJobById);
 
-// 📊 Get job types
-router.get("/types/all", getJobTypes);
 
-// 📥 Apply to job
-router.post("/:id/apply", applyToJob);
+// ================= APPLICANT ROUTES =================
 
-
-/* =========================
-   🔐 EMPLOYER ROUTES
-========================= */
-
-// ➕ Create job
-router.post("/", protect, createJob);
-
-// 📦 Get employer's jobs
-router.get("/employer/jobs", protect, getEmployerJobs);
-
-// 👥 Get applicants for a job
-router.get("/:id/applicants", protect, getJobApplicants);
+// Apply to job (ONLY applicants)
+router.post("/:id/apply", protect, checkRole("applicant"), applyToJob);
 
 
-/* =========================
-   🔐 ADMIN ROUTES
-========================= */
+// ================= EMPLOYER ROUTES =================
 
-// 🧾 Get all applicants (admin)
-router.get("/admin/applicants", protect, getAllJobApplicants);
+// Create job (ONLY employers)
+router.post("/", protect, checkRole("employer"), createJob);
 
+// Get employer jobs
+router.get("/employer/jobs", protect, checkRole("employer"), getEmployerJobs);
+
+// Get applicants for a specific job
+router.get(
+  "/:id/applicants",
+  protect,
+  checkRole("employer"),
+  getJobApplicants
+);
+
+
+// ================= BOOST JOB (EMPLOYER) =================
+router.patch(
+  "/jobs/:id/boost",
+  protect,
+  checkRole("employer"),
+  async (req, res) => {
+    try {
+      const job = await Job.findById(req.params.id);
+
+      if (!job) {
+        return res.status(404).json({ message: "Job not found" });
+      }
+
+      job.isFeatured = true;
+      job.planType = "premium";
+      job.featuredUntil = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+      await job.save();
+
+      res.json({
+        message: "Job boosted successfully 🔥",
+        job,
+      });
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  }
+);
 
 export default router;
